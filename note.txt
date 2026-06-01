@@ -1,0 +1,202 @@
+<script setup>
+import AdminLayout from "@/Layouts/AdminLayout.vue";
+import { Head, Link, useForm } from "@inertiajs/vue3";
+import { ref, onMounted } from "vue";
+import flatpickr from "flatpickr";
+import "flatpickr/dist/flatpickr.css";
+
+const props = defineProps({
+    addresses: Array,
+    positions: Array,
+    educations: Array,
+});
+
+const form = useForm({
+    // Account Info
+    username: "",
+    email: "",
+    password: "",
+    // Personal Info
+    employee_code: "",
+    name_kh: "",
+    name_en: "",
+    gender: "",
+    dob: "",
+    address_id: "",
+    position_id: "",
+    education_id: "",
+    phone: "",
+    hire_date: "",
+    end_date: "",
+});
+
+const formatPhone = (event) => {
+    let value = event.target.value.replace(/\D/g, "");
+    if (value.length > 10) value = value.substring(0, 10);
+    const formatted = value.match(/.{1,3}/g)?.join(" ") || "";
+    form.phone = formatted;
+};
+
+const hireDateRef = ref(null);
+const endDateRef = ref(null);
+const dobInput = ref(null);
+let fpEnd = null;
+
+onMounted(() => {
+    // Hire Date
+    flatpickr(hireDateRef.value, {
+        dateFormat: "Y-m-d",
+        altFormat: "d-m-Y",
+        altInput: true,
+        onChange: (selectedDates, dateStr) => {
+            form.hire_date = dateStr;
+            fpEnd.set("minDate", dateStr); // បិទថ្ងៃមុន Hire Date មិនឱ្យរើសក្នុង End Date
+        },
+    });
+
+    // End Date
+    fpEnd = flatpickr(endDateRef.value, {
+        dateFormat: "Y-m-d",
+        altFormat: "d-m-Y",
+        altInput: true,
+        onChange: (selectedDates, dateStr) => {
+            form.end_date = dateStr;
+        },
+    });
+
+    // Date of Birth
+    flatpickr(dobInput.value, {
+        dateFormat: "Y-m-d",
+        altFormat: "d-m-Y",
+        altInput: true,
+        maxDate: "today",
+        onChange: (selectedDates, dateStr) => {
+            form.dob = dateStr;
+        }
+    });
+});
+
+const submit = () => {
+    form.post(route('employees.store'), {
+        onSuccess: () => form.reset(),
+    });
+};
+</script>
+
+<template>
+    <Head title="Create Staff | Hope for Cambodian Children" />
+    <AdminLayout>
+        <div class="flex items-center justify-between mb-6 mx-5 my-5 mr-10">
+            <h1 class="text-2xl font-bold">Create Staff</h1>
+            <Link :href="route('employees.index')" class="px-4 py-2 bg-[#01AAEB] text-white rounded-xl flex justify-center items-center gap-1 cursor-pointer">
+                <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M17.51 3.87L15.73 2.1L5.84 12l9.9 9.9l1.77-1.77L9.38 12z" /></svg></span>
+                <span>Back</span>
+            </Link>
+        </div>
+
+        <div class="max-w-8xl mx-auto mr-10">
+            <form @submit.prevent="submit" class="flex flex-col md:flex-row gap-6">
+
+                <div class="bg-white p-8 rounded-2xl shadow-sm w-full md:w-1/3 flex flex-col">
+                    <h3 class="text-black mb-6 text-md font-bold pb-10 underline decoration-[#01AAEB] uppercase">Account Information</h3>
+                    <div class="grid grid-cols-1 gap-4">
+                        <div class="flex flex-col">
+                            <label class="text-gray-700 text-sm">Username*:</label>
+                            <input v-model="form.username" type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm outline-none focus:ring-2 focus:ring-blue-200" />
+                        </div>
+                        <div class="flex flex-col mt-2">
+                            <label class="text-gray-700 text-sm">Email*:</label>
+                            <input v-model="form.email" type="email" class="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm outline-none focus:ring-2 focus:ring-blue-200" />
+                        </div>
+                        <div class="flex flex-col mt-2">
+                            <label class="text-gray-700 text-sm">Password*:</label>
+                            <input v-model="form.password" type="password" class="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm outline-none focus:ring-2 focus:ring-blue-200" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-8 rounded-2xl shadow-sm w-full md:w-2/3">
+                    <h3 class="text-black mb-6 text-md font-bold pb-10 underline decoration-[#01AAEB] uppercase">Personal Information</h3>
+                    <div class="grid grid-cols-1 gap-4">
+
+                        <div class="flex flex-col md:flex-row md:items-center">
+                            <label class="w-72 text-gray-700">StaffID*:</label>
+                            <input v-model="form.employee_code" type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm outline-none focus:ring-2 focus:ring-blue-200" />
+                        </div>
+
+                        <div class="flex flex-col md:flex-row md:items-center">
+                            <label class="w-72 text-gray-700">Khmer Name*:</label>
+                            <input v-model="form.name_kh" type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm" />
+                        </div>
+                        <div class="flex flex-col md:flex-row md:items-center">
+                            <label class="w-72 text-gray-700">English Name*:</label>
+                            <input v-model="form.name_en" type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm" />
+                        </div>
+
+                        <div class="flex flex-col md:flex-row md:items-center">
+                            <label class="w-72 text-gray-700">Gender*:</label>
+                            <select v-model="form.gender" class="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm">
+                                <option value="" disabled>Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row md:items-center">
+                            <label class="w-72 text-gray-700">Date of Birth*:</label>
+                            <input ref="dobInput" type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm bg-white" />
+                        </div>
+
+                        <div class="flex flex-col md:flex-row md:items-center">
+                            <label class="w-72 text-gray-700">Address*:</label>
+                            <select v-model="form.address_id" class="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm">
+                                <option value="" disabled>Select a province</option>
+                                <option v-for="addr in addresses" :key="addr.id" :value="addr.id">{{ addr.name }}</option>
+                            </select>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row md:items-center">
+                            <label class="w-72 text-gray-700">Position*:</label>
+                            <select v-model="form.position_id" class="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm">
+                                <option value="" disabled>Select a position</option>
+                                <option v-for="pos in positions" :key="pos.id" :value="pos.id">{{ pos.name }}</option>
+                            </select>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row md:items-center">
+                            <label class="w-72 text-gray-700">Education Level*:</label>
+                            <select v-model="form.education_id" class="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm">
+                                <option value="" disabled>Select Education</option>
+                                <option v-for="edu in educations" :key="edu.id" :value="edu.id">{{ edu.name }}</option>
+                            </select>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row md:items-center">
+                            <label class="w-72 text-gray-700">Phone Number*:</label>
+                            <input v-model="form.phone" @input="formatPhone" type="text" placeholder="012 345 678" class="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm" />
+                        </div>
+
+                        <div class="flex flex-col md:flex-row md:items-center">
+                            <label class="w-72 text-gray-700">Hire Date*:</label>
+                            <input ref="hireDateRef" type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm bg-white" />
+                        </div>
+
+                        <div class="flex flex-col md:flex-row md:items-center">
+                            <label class="w-72 text-gray-700">End Date:</label>
+                            <input ref="endDateRef" type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm bg-white" />
+                        </div>
+
+                        <div class="pt-6 flex justify-end">
+                            <button type="submit" :disabled="form.processing" class="bg-[#01AAEB] text-white px-8 py-2 rounded-xl font-bold hover:scale-105 transition-all flex items-center gap-2 disabled:opacity-50">
+                                <svg v-if="!form.processing" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="#fff" d="M21 7v12q0 .825-.587 1.413T19 21H5q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h12zm-6.875 10.125Q15 16.25 15 15t-.875-2.125T12 12t-2.125.875T9 15t.875 2.125T12 18t2.125-.875M6 10h9V6H6z"/></svg>
+                                <span v-else class="animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4"></span>
+                                {{ form.processing ? "Saving..." : "Save Staff" }}
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </form>
+        </div>
+    </AdminLayout>
+</template>
