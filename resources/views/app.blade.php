@@ -6,7 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="website icon" type="jpg" href="/images/icon.png">
     <title inertia>{{ config('app.name', 'Laravel') }}</title>
-
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0033cc">
+    <link rel="apple-touch-icon" href="/images/icon.png">
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />

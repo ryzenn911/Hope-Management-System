@@ -1,0 +1,21 @@
+{
+    "name": "HOPE for Cambodian Children",
+    "short_name": "HOPE System",
+    "description": "A staff management system for HOPE for Cambodian Children organization.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#0033cc",
+    "icons": [
+        {
+            "src": "/images/icon.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/images/icon.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
