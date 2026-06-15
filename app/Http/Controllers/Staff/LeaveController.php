@@ -20,6 +20,11 @@ class LeaveController extends Controller
         return Inertia::render('Staff/Leaves/Create');
     }
 
+     public function index()
+    {
+        return Inertia::render('Staff/Leaves/Index');
+    }
+
     public function store(Request $request)
     {
 

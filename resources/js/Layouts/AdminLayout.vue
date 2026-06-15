@@ -87,6 +87,18 @@ const Icons = {
                     <span class="mr-3" v-html="Icons.Staff"></span>
                     Staff Management
                 </Link>
+                <Link
+                    :href="route('departments.index')"
+                    :class="
+                        route().current('departments.*')
+                            ? 'bg-[#01AAEB] text-white shadow-lg shadow-blue-100'
+                            : 'text-gray-500 hover:bg-[#01AAEB] hover:text-white'
+                    "
+                    class="flex items-center px-4 py-3 rounded-xl font-bold transition-all duration-300 font-poppins md:text-base text-sm"
+                >
+                    <span class="mr-3" v-html="Icons.Department"></span>
+                    Departments
+                </Link>
                 <!-- <Link
                     :href="route('admin.attendance')"
                     :class="
@@ -106,7 +118,7 @@ const Icons = {
                             ? 'bg-[#01AAEB] text-white shadow-lg shadow-blue-100'
                             : 'text-gray-500 hover:bg-[#01AAEB] hover:text-white'
                     "
-                     class="flex items-center px-4 py-3 rounded-xl font-bold transition-all duration-300 font-poppins md:text-base text-sm"
+                    class="flex items-center px-4 py-3 rounded-xl font-bold transition-all duration-300 font-poppins md:text-base text-sm"
                 >
                     <span class="mr-3" v-html="Icons.Leave"></span>
                     Leaves

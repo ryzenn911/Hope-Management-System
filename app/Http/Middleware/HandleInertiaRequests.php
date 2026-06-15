@@ -29,19 +29,14 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-
         $user = $request->user();
-
-        // ទាញទិន្នន័យ employee ចេញពី user ដែលកំពុង login
         $employee = $user ? $user->employee : null;
-
         $firstNameOnly = null;
         if ($employee && $employee->name_en) {
-            $nameParts = explode(' ', trim($employee->name_en)); // បំបែកឈ្មោះតាមរយៈចន្លោះ (Space)
-            $firstNameOnly = end($nameParts); // យកពាក្យដែលនៅខាងចុងគេបង្អស់
+            $nameParts = explode(' ', trim($employee->name_en));
+            $firstNameOnly = end($nameParts);
         }
         return array_merge(parent::share($request), [
-            // បន្ថែមព័ត៌មាន Auth User នៅទីនេះ
             'auth' => [
                 'user' => $request->user() ? [
                     'id' => $request->user()->id,
@@ -58,7 +53,6 @@ class HandleInertiaRequests extends Middleware
                 'notifications' => $request->user() ? $request->user()->unreadNotifications : [],
             ],
 
-            // នេះជាកូដចាស់របស់បង
             'errors' => function () {
                 return session()->get('errors')
                     ? collect(session()->get('errors')->getBag('default')->getMessages())->map(function ($error) {

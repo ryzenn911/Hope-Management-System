@@ -12,11 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('employees', function (Blueprint $table) {
-            // បន្ថែម Column ទាំង ៤ (អាចដាក់ ->nullable() ដើម្បីកុំឱ្យទើសទិន្នន័យចាស់ដែលគ្មានតម្លៃទាំងនេះ)
-            $table->string('marital_status')->nullable()->after('gender'); // ស្ថានភាពគ្រួសារ (ឧទាហរណ៍៖ លីវ ឬ រៀបការរួច)
-            $table->string('nssf_number')->nullable();      // លេខបេឡាជាតិរបបសន្តិសុខសង្គម (ប.ស.ស)
-            $table->string('labor_book')->nullable();       // សៀវភៅការងារ
-            $table->integer('family_number')->nullable();    // ចំនួនសមាជិកគ្រួសារ (ជាលេខ)
+            $table->string('marital_status')->nullable()->after('gender');
+            $table->string('nssf_number')->nullable();
+            $table->string('labor_book')->nullable();
+            $table->integer('family_number')->nullable();
         });
     }
 
@@ -26,7 +25,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('employees', function (Blueprint $table) {
-            // សម្រាប់លុបចេញវិញ បើសិនជាយើងប្រកាស Rollback
             $table->dropColumn(['marital_status', 'nssf_number', 'labor_book', 'family_number']);
         });
     }

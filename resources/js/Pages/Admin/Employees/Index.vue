@@ -15,7 +15,7 @@ const props = defineProps({
 const search = ref(props.filters.search);
 
 const goToShow = (id) => {
-    router.visit(route('employees.show', id));
+    router.visit(route("employees.show", id));
 };
 
 watch(
@@ -105,11 +105,17 @@ onUnmounted(() => {
     <Head title="Staff | Hope for Cambodian Children" />
     <AdminLayout>
         <div class="md:px-4 px-0">
-            <div class="mb-6 flex md:flex-row flex-col md:items-center items-end justify-between gap-3">
-                <h1 class="md:text-2xl text-md font-bold text-gray-800 font-poppins md:flex hidden">
+            <div
+                class="mb-6 flex md:flex-row flex-col md:items-center items-end justify-between gap-3"
+            >
+                <h1
+                    class="md:text-2xl text-md font-bold text-gray-800 font-poppins md:flex hidden"
+                >
                     Staff List
                 </h1>
-                <div class="flex gap-2 md:w-1/2 w-full justify-center items-center">
+                <div
+                    class="flex gap-2 md:w-1/2 w-full justify-center items-center"
+                >
                     <div class="relative w-full max-w-2xl">
                         <span
                             class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
@@ -167,7 +173,7 @@ onUnmounted(() => {
 
                 <Link
                     :href="route('employees.create')"
-                    class="px-4  py-2 bg-[#01AAEB] text-white rounded-xl flex justify-center items-center gap-1 hover:bg-[#0198d1] transition-all"
+                    class="px-4 py-2 bg-[#01AAEB] text-white rounded-xl flex justify-center items-center gap-1 hover:bg-[#0198d1] transition-all"
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -180,14 +186,18 @@ onUnmounted(() => {
                             d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2z"
                         />
                     </svg>
-                    <span class="font-medium font-poppins md:text-lg text-sm">Add Staff</span>
+                    <span class="font-medium font-poppins md:text-lg text-sm"
+                        >Add Staff</span
+                    >
                 </Link>
             </div>
 
             <div
                 class="bg-white shadow-sm border border-gray-100 rounded-xl get-scrollbar overflow-x-auto md:overflow-x-visible"
             >
-                <table class="w-full text-left border-collapse whitespace-nowrap">
+                <table
+                    class="w-full text-left border-collapse whitespace-nowrap"
+                >
                     <thead
                         class="bg-gray-200 border-b border-gray-100 text-gray-600 md:text-sm text-xs font-bold uppercase font-poppins"
                     >
@@ -196,13 +206,13 @@ onUnmounted(() => {
                             <th class="md:p-4 p-2">Name KH</th>
                             <th class="md:p-4 p-2">Name EN</th>
                             <th class="md:p-4 p-2">Gender</th>
+                            <th class="md:p-4 p-2">Marital Status</th>
                             <th class="md:p-4 p-2">Date of Birth</th>
                             <th class="md:p-4 p-2">Address</th>
                             <th class="md:p-4 p-2">Position</th>
                             <th class="md:p-4 p-2">Education</th>
                             <th class="md:p-4 p-2">Phone Number</th>
                             <th class="md:p-4 p-2">Hire Date</th>
-                            <th class="md:p-4 p-2">End Date</th>
                             <th class="md:p-4 p-2">Status</th>
                             <th class="md:p-4 p-2 text-center">Action</th>
                         </tr>
@@ -224,34 +234,44 @@ onUnmounted(() => {
                             >
                                 {{ emp.name_kh }}
                             </td>
-                            <td class="md:p-2 p-1 uppercase text-[13px] font-poppins">
+                            <td
+                                class="md:p-2 p-1 uppercase text-[13px] font-poppins"
+                            >
                                 {{ emp.name_en }}
                             </td>
-                            <td class="md:p-2 p-1 font-poppins text-[13px]">
+                            <td
+                                class="md:p-2 p-1 font-poppins text-[13px] text-center"
+                            >
                                 {{ emp.gender }}
                             </td>
-                            <td class="md:p-2 p-1 font-poppins text-[13px]">
+                            <td
+                                class="md:p-2 p-1 font-poppins text-[13px] text-center capitalize"
+                            >
+                                {{ emp.marital_status }}
+                            </td>
+                            <td
+                                class="md:p-2 p-1 font-poppins text-[13px] text-center"
+                            >
                                 {{ emp.dob }}
                             </td>
                             <td class="md:p-2 p-1 font-poppins text-[13px]">
                                 {{ emp.address?.name }}
                             </td>
-                            <td class="md:p-2 p-1 font-poppins text-[13px]">
-                                {{ emp.position?.name || "N/A" }}
+                            <td class="md:p-2 p-1 font-siemreap text-[13px]">
+                                {{ emp.position?.name || "_ _ _" }}
                             </td>
                             <td class="md:p-2 p-1 font-poppins text-[13px]">
                                 {{ emp.education?.name }}
                             </td>
                             <td
-                                class="md:p-2 p-1 text-sm font-medium text-gray-700 font-poppins"
+                                class="md:p-2 p-1 text-sm font-medium text-gray-700 font-poppins text-center"
                             >
                                 {{ formatPhone(emp.phone) }}
                             </td>
-                            <td class="md:p-2 p-1 font-poppins text-[13px]">
+                            <td
+                                class="md:p-2 p-1 font-poppins text-[13px] text-center"
+                            >
                                 {{ emp.hire_date }}
-                            </td>
-                            <td class="md:p-2 p-1 font-poppins text-[13px]">
-                                {{ emp.end_date || "_ _ _ _" }}
                             </td>
                             <td class="md:p-2 p-1 text-center">
                                 <span
@@ -267,7 +287,10 @@ onUnmounted(() => {
                                 </span>
                             </td>
                             <td class="md:p-2 p-1 text-center">
-                                <div class="relative inline-block text-left" @click.stop>
+                                <div
+                                    class="relative inline-block text-left"
+                                    @click.stop
+                                >
                                     <button
                                         @click.stop="toggleDropdown(emp.id)"
                                         class="p-2 hover:bg-gray-100 rounded-full transition-colors focus:outline-none"

@@ -96,7 +96,6 @@ onMounted(() => {
                             </span>
                         </button>
 
-                        <!-- Dropdown បញ្ជីសារ -->
                         <div
                             v-if="isNotiOpen"
                             @click.outside="isNotiOpen = false"
@@ -118,7 +117,6 @@ onMounted(() => {
                             </div>
 
                             <div class="max-h-96 overflow-y-auto">
-                                <!-- បើគ្មានសារ -->
                                 <div
                                     v-if="notifications.length === 0"
                                     class="p-8 text-center text-gray-400"
@@ -126,17 +124,17 @@ onMounted(() => {
                                     <p class="text-sm">No new notifications</p>
                                 </div>
 
-                                <!-- បញ្ជីសារនីមួយៗ -->
                                 <div
+                                    v-if="notifications && notifications.length"
                                     v-for="noti in notifications"
                                     :key="noti.id"
                                     class="p-3 border-b hover:bg-blue-50 transition-colors cursor-pointer"
                                 >
                                     <p class="text-sm font-bold text-gray-800">
-                                        {{ noti.data.title }}
+                                        {{ noti.data?.title }}
                                     </p>
                                     <p class="text-xs text-gray-600">
-                                        {{ noti.data.message }}
+                                        {{ noti.data?.message }}
                                     </p>
                                     <p
                                         class="text-[10px] text-gray-400 mt-1 italic text-right"
@@ -148,7 +146,6 @@ onMounted(() => {
                         </div>
                     </div>
                     <div class="relative">
-                        <!-- Circle Button -->
                         <button
                             @click="isDropdownOpen = !isDropdownOpen"
                             class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#8BC34A] text-white flex items-center justify-center font-bold shadow-sm focus:outline-none active:scale-90 transition-all"
@@ -156,16 +153,14 @@ onMounted(() => {
                             {{ $page.props.auth.user.first_letter }}
                         </button>
 
-                        <!-- Dropdown Menu -->
                         <div
                             v-if="isDropdownOpen"
                             @click.away="isDropdownOpen = false"
-                            class="absolute right-0 mt-2 w-24 bg-white rounded-xl shadow-lg border border-gray-100 z-50 py-2"
+                            class="absolute right-0 mt-2 w-32 bg-white rounded-xl shadow-lg border border-gray-100 z-50 py-2"
                         >
-                            <!-- Account Item -->
                             <Link
                                 href="/profile"
-                                class="flex items-center p-1 text-sm text-gray-700 hover:bg-gray-50"
+                                class="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
                             >
                                 <i
                                     class="fas fa-user-circle mr-3 text-gray-400"
@@ -173,15 +168,13 @@ onMounted(() => {
                                 Account
                             </Link>
 
-                            <!-- Divider -->
                             <div class="border-t border-gray-50 my-1"></div>
 
-                            <!-- Logout Item -->
                             <Link
                                 href="/logout"
                                 method="post"
                                 as="button"
-                                class="w-full flex items-center p-1 text-sm text-red-600 hover:bg-red-50"
+                                class="w-full flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50 text-left"
                             >
                                 <i class="fas fa-sign-out-alt mr-3"></i>
                                 Logout
@@ -195,7 +188,7 @@ onMounted(() => {
         <div class="py-4">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <div
-                    class="overflow-hidden bg-white shadow-sm rounded-xl px-5 py-3 mx-4"
+                    class="overflow-hidden bg-white shadow-sm rounded-xl px-5 py-3 mx-4 mb-6"
                 >
                     <h1 class="md:text-xl text-sm text-[#01AAEB] font-poppins">
                         Hello,
@@ -204,211 +197,282 @@ onMounted(() => {
                         }}</span
                         >!
                     </h1>
-                    <h2 class="md:text-lg text-sm text-gray-600 font-poppins">
+                    <h2 class="md:text-lg text-sm text-gray-600 font-siemreap">
                         Position:
                         {{ $page.props.auth.user.position?.name || "N/A" }}
                     </h2>
                 </div>
-                <div class="flex items-center justify-end px-5">
-                    <div class="p-4">
-                        <div class="flex justify-end">
-                            <div class="relative max-w-[160px]">
-                                <div
-                                    class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
-                                >
-                                    <svg
-                                        class="h-4 w-4 text-gray-400"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="2"
-                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                        />
-                                    </svg>
-                                </div>
-                                <input
-                                    ref="datePicker"
-                                    type="text"
-                                    class="block w-full pl-10 pr-3 md:py-4 py-2 border border-gray-200 rounded-lg text-xs font-semibold text-gray-600 focus:ring-[#01AAEB] focus:border-[#01AAEB] cursor-pointer bg-white shadow-sm"
-                                    placeholder="Select Month"
-                                />
-                            </div>
-                        </div>
 
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mx-4 mb-6">
+                    <Link
+                        :href="route('staff.attendance.scan')"
+                        class="flex flex-col items-center justify-center bg-[#8BC34A] text-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 active:scale-95 group text-center"
+                    >
                         <div
-                            class="grid grid-cols-2 md:grid-cols-4 md:gap-4 gap-2"
-                        ></div>
-                    </div>
-                    <div class="flex items-center justify-end">
-                        <Link
-                            href="/staff/leaves/create"
-                            class="md:w-40 w-32 flex items-center justify-center bg-[#01AAEB] hover:bg-[#13b3f3] text-white font-bold py-2 md:px-4 px-1 md:py-3 rounded-xl shadow-sm transition-all active:scale-95"
+                            class="p-4 bg-white/20 rounded-2xl mb-3 group-hover:scale-110 transition-transform duration-300"
                         >
                             <svg
-                                class="w-5 h-5"
+                                class="w-10 h-10 text-white"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
                                 xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                ></path>
+                            </svg>
+                        </div>
+                        <span
+                            class="text-lg font-bold font-poppins tracking-wide"
+                            >ATTENDANCE</span
+                        >
+                        <span
+                            class="text-xs text-emerald-100 font-siemreap mt-1"
+                            >ស្កេនកូដវត្តមាន ចូល/ចេញ</span
+                        >
+                    </Link>
+
+                    <Link
+                        :href="route('staff.leaves.index')"
+                        class="flex flex-col items-center justify-center bg-[#01AAEB] text-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 active:scale-95 group text-center"
+                    >
+                        <div
+                            class="p-4 bg-white/20 rounded-2xl mb-3 group-hover:scale-110 transition-transform duration-300"
+                        >
+                            <svg
+                                class="w-10 h-10 text-white"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                ></path>
+                            </svg>
+                        </div>
+                        <span
+                            class="text-lg font-bold font-poppins tracking-wide"
+                            >LEAVE REQUEST</span
+                        >
+                        <span class="text-xs text-sky-100 font-siemreap mt-1"
+                            >ស្នើសុំច្បាប់ឈប់សម្រាក</span
+                        >
+                    </Link>
+                </div>
+                <div
+                    class="flex flex-col md:flex-row md:items-center md:justify-between px-5 mb-6 gap-4"
+                >
+                    <div class="flex items-center space-x-2">
+                        <div class="p-2 bg-blue-50 rounded-lg">
+                            <svg
+                                class="w-5 h-5 text-[#01AAEB]"
+                                fill="none"
+                                stroke="currentColor"
                                 viewBox="0 0 24 24"
                             >
                                 <path
-                                    fill="currentColor"
-                                    d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2z"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                                 />
                             </svg>
-                            <span class="text-xs md:text-base"
-                                >Request Leave</span
+                        </div>
+                        <div>
+                            <h3
+                                class="text-gray-800 font-bold font-siemreap text-base leading-tight"
                             >
-                        </Link>
+                                វត្តមានប្រចាំសប្ដាហ៍
+                            </h3>
+                            <p class="text-[11px] text-gray-500 font-poppins">
+                                Weekly Attendance (Mon - Fri)
+                            </p>
+                        </div>
+                    </div>
+
+                    <div
+                        class="flex items-center space-x-2 bg-white border border-gray-200 rounded-2xl p-1.5 shadow-sm"
+                    >
+                        <button
+                            @click="changeWeek('prev')"
+                            class="p-2 hover:bg-gray-100 rounded-xl text-gray-500 transition-all active:scale-90"
+                        >
+                            <svg
+                                class="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M15 19l-7-7 7-7"
+                                />
+                            </svg>
+                        </button>
+                        <div class="px-4 text-center">
+                            <span
+                                class="block text-[10px] text-gray-400 uppercase font-bold tracking-widest font-poppins"
+                                >Current Week</span
+                            >
+                            <span
+                                class="text-sm font-bold text-gray-700 font-poppins"
+                                >June 15 - June 19, 2026</span
+                            >
+                        </div>
+                        <button
+                            @click="changeWeek('next')"
+                            class="p-2 hover:bg-gray-100 rounded-xl text-gray-500 transition-all active:scale-90"
+                        >
+                            <svg
+                                class="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 5l7 7-7 7"
+                                />
+                            </svg>
+                        </button>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 md:grid-cols-4 md:gap-4 gap-2 p-4">
-                    <div class="p-4 rounded-2xl shadow-sm bg-[#8BC34A]">
-                        <div
-                            class="text-white text-xs md:text-md mb-1 font-poppins"
-                        >
-                            Annual Leave Balance
-                        </div>
-                        <div
-                            class="md:text-xl text-sm font-bold text-white font-poppins"
-                        >
-                            {{ leaveBalance }}
-                            <span class="font-normal text-xs">Days</span>
-                        </div>
-                    </div>
 
-                    <div class="bg-[#01AAEB] p-4 rounded-2xl shadow-sm">
-                        <div
-                            class="text-white text-xs md:text-md mb-1 font-poppins"
-                        >
-                            Approved Requests
-                        </div>
-                        <div
-                            class="md:text-xl text-sm font-bold text-white font-poppins"
-                        >
-                            {{ approvedDays }}
-                            <span class="font-normal text-xs">Days</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-[#F44336] p-4 rounded-2xl shadow-sm">
-                        <div
-                            class="text-white text-xs md:text-md mb-1 font-poppins"
-                        >
-                            Rejected Requests
-                        </div>
-                        <div
-                            class="md:text-xl text-sm font-bold text-white font-poppins"
-                        >
-                            {{ rejectedDays }}
-                            <span class="font-normal text-xs">Days</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-[#FFC107] p-4 rounded-2xl shadow-sm">
-                        <div
-                            class="text-white text-xs md:text-md mb-1 font-poppins"
-                        >
-                            Pending Requests
-                        </div>
-                        <div
-                            class="md:text-xl text-sm font-bold text-white font-poppins"
-                        >
-                            {{ pendingDays }}
-                            <span class="font-normal text-xs">Days</span>
-                        </div>
-                    </div>
-                </div>
                 <div
-                    class="mt-6 overflow-hidden bg-white rounded-2xl border border-gray-100 shadow-sm mx-5"
+                    class="overflow-hidden bg-white rounded-3xl border border-gray-100 shadow-sm mx-5 mb-10"
                 >
-                    <table class="w-full">
-                        <thead>
-                            <tr class="bg-gray-300 border-b border-gray-100">
-                                <th
-                                    class="p-4 text-left md:text-xs text-[9px] font-bold text-gray-700 uppercase tracking-wider"
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr
+                                    class="bg-gray-50/80 border-b border-gray-100"
                                 >
-                                    Leave Type
-                                </th>
-                                <th
-                                    class="p-4 text-center md:text-xs text-[9px] font-bold text-gray-700 uppercase tracking-wider"
-                                >
-                                    Start Date
-                                </th>
-                                <th
-                                    class="p-4 text-center md:text-xs text-[9px] font-bold text-gray-700 uppercase tracking-wider"
-                                >
-                                    End Date
-                                </th>
-                                <th
-                                    class="p-4 text-center md:text-xs text-[9px] font-bold text-gray-700 uppercase tracking-wider"
-                                >
-                                    Duration
-                                </th>
-                                <th
-                                    class="p-4 text-center md:text-xs text-[9px] font-bold text-gray-700 uppercase tracking-wider"
-                                >
-                                    Status
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200">
-                            <tr
-                                v-for="leave in leaves"
-                                :key="leave.id"
-                                class="hover:bg-gray-50/80 transition-colors duration-200"
-                            >
-                                <td class="p-4">
-                                    <span
-                                        class="md:text-sm text-[10px] text-gray-500"
-                                        >{{ leave.leave_type }}</span
+                                    <th
+                                        class="p-4 text-[11px] font-bold text-gray-400 uppercase font-poppins w-40"
                                     >
-                                </td>
-                                <td
-                                    class="p-4 text-center md:text-sm text-[10px] text-gray-500"
-                                >
-                                    {{ leave.start_date }}
-                                </td>
-                                <td
-                                    class="p-4 text-center md:text-sm text-[10px] text-gray-500"
-                                >
-                                    {{ leave.end_date }}
-                                </td>
-                                <td class="p-4 text-center">
-                                    <span
-                                        class="p-4 text-gray-500 font-bold md:text-sm text-[10px]"
+                                        Date / Day
+                                    </th>
+                                    <th
+                                        colspan="2"
+                                        class="p-4 text-[11px] font-bold text-blue-500 uppercase font-poppins text-center border-x border-gray-100/50"
                                     >
-                                        {{ leave.total_days }} Day
-                                    </span>
-                                </td>
-                                <td class="p-4 text-center">
-                                    <span
-                                        :class="{
-                                            'text-amber-600 bg-amber-50 border-amber-100':
-                                                leave.status === 'pending',
-                                            'text-emerald-600 bg-emerald-50 border-emerald-100':
-                                                leave.status === 'approved',
-                                            'text-rose-600 bg-rose-50 border-rose-100':
-                                                leave.status === 'rejected',
-                                        }"
-                                        class="px-1 py-1 rounded-full md:text-[10px] text-[9px] font-bold uppercase tracking-tight border"
+                                        Morning Session
+                                    </th>
+                                    <th
+                                        colspan="2"
+                                        class="p-4 text-[11px] font-bold text-indigo-500 uppercase font-poppins text-center border-r border-gray-100/50"
                                     >
-                                        {{ leave.status }}
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr v-if="leaves.length === 0">
-                                <td
-                                    colspan="6"
-                                    class="p-8 text-center text-gray-400 text-sm"
+                                        Afternoon Session
+                                    </th>
+                                    <th
+                                        class="p-4 text-[11px] font-bold text-gray-400 uppercase font-poppins text-center"
+                                    >
+                                        Status
+                                    </th>
+                                </tr>
+                                <tr
+                                    class="bg-gray-50/30 border-b border-gray-100 text-[10px] uppercase text-gray-400 font-bold"
                                 >
-                                    No leave requests found.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                                    <th></th>
+                                    <th
+                                        class="text-center py-2 border-r border-gray-100/50"
+                                    >
+                                        In 1
+                                    </th>
+                                    <th
+                                        class="text-center py-2 border-r border-gray-100/50"
+                                    >
+                                        Out 1
+                                    </th>
+                                    <th
+                                        class="text-center py-2 border-r border-gray-100/50"
+                                    >
+                                        In 2
+                                    </th>
+                                    <th
+                                        class="text-center py-2 border-r border-gray-100/50"
+                                    >
+                                        Out 2
+                                    </th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                                <tr
+                                    v-for="day in 5"
+                                    :key="day"
+                                    class="hover:bg-blue-50/30 transition-colors group"
+                                >
+                                    <td class="p-4">
+                                        <div
+                                            class="text-sm font-bold text-gray-800 font-poppins"
+                                        >
+                                            June 15, 2026
+                                        </div>
+                                        <div
+                                            class="text-[11px] text-gray-400 font-siemreap"
+                                        >
+                                            ថ្ងៃច័ន្ទ / Monday
+                                        </div>
+                                    </td>
+
+                                    <td
+                                        class="p-4 text-center border-x border-gray-100/30"
+                                    >
+                                        <span
+                                            class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg"
+                                            >07:45 AM</span
+                                        >
+                                    </td>
+                                    <td
+                                        class="p-4 text-center border-r border-gray-100/30"
+                                    >
+                                        <span
+                                            class="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-lg"
+                                            >12:05 PM</span
+                                        >
+                                    </td>
+
+                                    <td
+                                        class="p-4 text-center border-r border-gray-100/30"
+                                    >
+                                        <span
+                                            class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg"
+                                            >01:30 PM</span
+                                        >
+                                    </td>
+                                    <td
+                                        class="p-4 text-center border-r border-gray-100/30"
+                                    >
+                                        <span
+                                            class="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-lg"
+                                            >17:00 PM</span
+                                        >
+                                    </td>
+
+                                    <td class="p-4 text-center">
+                                        <span
+                                            class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-emerald-50 text-emerald-600 border border-emerald-100"
+                                        >
+                                            Present
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

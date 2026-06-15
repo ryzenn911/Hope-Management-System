@@ -503,7 +503,7 @@ const submit = () => {
                                             v-for="pos in positions"
                                             :key="pos.id"
                                             :value="pos.id"
-                                            class="text-gray-900"
+                                            class="text-gray-900 font-siemreap"
                                         >
                                             {{ pos.name }}
                                         </option>

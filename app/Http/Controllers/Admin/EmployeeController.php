@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Address;
+use App\Models\EducationLevel;
+use App\Models\Employee;
 use App\Models\Position;
 use App\Models\User;
-use App\Models\Employee;
-use App\Models\EducationLevel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -22,7 +22,7 @@ class EmployeeController extends Controller
         return Inertia::render('Admin/Employees/Create', [
             'addresses' => Address::orderBy('name', 'asc')->get(['id', 'name']),
             'positions' => Position::orderBy('name', 'asc')->get(['id', 'name']),
-            'educations' => EducationLevel::all(['id', 'name'])
+            'educations' => EducationLevel::all(['id', 'name']),
         ]);
     }
 
@@ -44,7 +44,7 @@ class EmployeeController extends Controller
 
         return Inertia::render('Admin/Employees/Index', [
             'employees' => $employees,
-            'filters' => $request->only(['search'])
+            'filters' => $request->only(['search']),
         ]);
     }
 
@@ -70,9 +70,9 @@ class EmployeeController extends Controller
                 'other_education_name' => 'required_if:education_id,other',
                 'hire_date' => 'required|date',
                 'end_date' => 'nullable|date|after_or_equal:hire_date',
-                'nssf_number'    => 'nullable|string|max:50',
-                'labor_book'     => 'nullable|string|max:50',
-                'family_number'  => 'nullable|string|max:50',
+                'nssf_number' => 'nullable|string|max:50',
+                'labor_book' => 'nullable|string|max:50',
+                'family_number' => 'nullable|string|max:50',
             ],
             [
                 'username.required' => 'Please enter a username.',
@@ -144,60 +144,59 @@ class EmployeeController extends Controller
 
             return redirect()->route('employees.index')->with('success', 'Employee created successfully.');
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'មានបញ្ហាបច្ចេកទេស៖ ' . $e->getMessage()])->withInput();
+            return back()->withErrors(['error' => 'មានបញ្ហាបច្ចេកទេស៖ '.$e->getMessage()])->withInput();
         }
     }
+
     public function show(Employee $employee)
     {
         $employee->load(['user', 'position', 'address', 'education']);
 
         return inertia('Admin/Employees/View', [
-            'employee' => $employee
+            'employee' => $employee,
         ]);
     }
+
     public function edit(Employee $employee)
     {
 
         $employee->load('user');
+
         return Inertia::render('Admin/Employees/Edit', [
-            'employee'  => $employee,
+            'employee' => $employee,
             'addresses' => Address::all(),
             'positions' => Position::all(),
             'educations' => EducationLevel::all(),
         ]);
     }
+
     public function update(Request $request, Employee $employee)
     {
         // ១. Validation
         $request->validate([
-            'username' => ['required', 'string', 'max:255', 'unique:users,username,' . $employee->user_id],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $employee->user_id],
+            'username' => ['required', 'string', 'max:255', 'unique:users,username,'.$employee->user_id],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email,'.$employee->user_id],
             'password' => ['nullable', 'string', 'min:8'],
 
-            'employee_code' => ['required', 'string', 'unique:employees,employee_code,' . $employee->id],
+            'employee_code' => ['required', 'string', 'unique:employees,employee_code,'.$employee->id],
             'name_kh' => ['required', 'string', 'max:255'],
             'name_en' => ['required', 'string', 'max:255'],
             'gender' => ['required', 'in:Male,Female'],
             'dob' => ['required', 'date'],
             'phone' => ['required', 'string'],
-            'family_number' => ['required', 'string'],
+            'family_number' => ['nullable', 'string'],
             'marital_status' => ['required', 'in:single,married,divorced,widowed'],
-            'nssf_number' => ['required', 'string'],
-            'labor_book' => ['required', 'string'],
-            'address_id' => ['required', 'exists:addresses,id'],
-
-
-
-            // កែត្រង់នេះ៖ ដក exists ចេញ ព្រោះវាអាចជាពាក្យ "other"
+            'nssf_number' => ['nullable', 'string', 'max:255'],
+            'labor_book' => ['nullable', 'string', 'max:255'],
+            'address_id' => ['nullable', 'exists:addresses,id'],
             'position_id' => ['required'],
             'education_id' => ['required'],
-
             'other_position_name' => 'required_if:position_id,other',
             'other_education_name' => 'required_if:education_id,other',
             'hire_date' => ['required', 'date'],
 
             // កែត្រង់នេះ៖ ប្រើ Resign (តាម Enum ក្នុង DB)
-            'status'  => 'required|in:Active,Resigned',
+            'status' => 'required|in:Active,Resigned',
             'end_date' => 'nullable|date',
         ]);
 
@@ -225,28 +224,28 @@ class EmployeeController extends Controller
 
         if ($request->filled('password') && $request->password !== '********') {
             $user->update([
-                'password' => Hash::make($request->password)
+                'password' => Hash::make($request->password),
             ]);
         }
 
         // ៥. Update ព័ត៌មានបុគ្គលិក (ប្រើ Variable $positionId និង $educationId)
         $employee->update([
             'employee_code' => $request->employee_code,
-            'name_kh'      => $request->name_kh,
-            'name_en'      => $request->name_en,
-            'gender'       => $request->gender,
-            'dob'          => $request->dob,
+            'name_kh' => $request->name_kh,
+            'name_en' => $request->name_en,
+            'gender' => $request->gender,
+            'dob' => $request->dob,
             'marital_status' => $request->marital_status,
             'nssf_number' => $request->nssf_number,
             'labor_book' => $request->labor_book,
             'family_number' => str_replace(' ', '', $request->family_number),
-            'phone'        => str_replace(' ', '', $request->phone),
-            'address_id'   => $request->address_id,
-            'position_id'  => $positionId,
+            'phone' => str_replace(' ', '', $request->phone),
+            'address_id' => $request->address_id,
+            'position_id' => $positionId,
             'education_id' => $educationId,
-            'hire_date'    => $request->hire_date,
-            'end_date'     => $request->end_date,
-            'status'       => $request->status,
+            'hire_date' => $request->hire_date,
+            'end_date' => $request->end_date,
+            'status' => $request->status,
         ]);
 
         return redirect()->route('employees.index')->with('success', 'Staff updated successfully.');
@@ -261,6 +260,7 @@ class EmployeeController extends Controller
             /** @disregard */
             $employee->delete();
         });
+
         return redirect()->route('employees.index');
     }
 }

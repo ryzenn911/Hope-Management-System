@@ -91,7 +91,9 @@ const props = defineProps({
                                     <label class="w-32 text-gray-500 text-left"
                                         >Position:</label
                                     >
-                                    <div class="text-gray-900 font-bold">
+                                    <div
+                                        class="text-gray-900 font-bold font-siemreap"
+                                    >
                                         {{ employee.position?.name }}
                                     </div>
                                 </div>
@@ -141,7 +143,9 @@ const props = defineProps({
                                 </div>
                                 <div>
                                     <p class="text-gray-500">Marital Status</p>
-                                    <p class="font-medium text-gray-900">
+                                    <p
+                                        class="font-medium text-gray-900 capitalize"
+                                    >
                                         {{ employee.marital_status || "---" }}
                                     </p>
                                 </div>

@@ -143,6 +143,7 @@ const submit = () => {
         !form.username ||
         !form.email ||
         !form.gender ||
+        !form.marital_status ||
         !form.dob ||
         !form.address_id ||
         !form.position_id ||
@@ -157,13 +158,13 @@ const submit = () => {
         return;
     }
 
-    // ប្រើ PUT សម្រាប់ Update
     form.post(route("employees.update", props.employee.id), {
         preserveScroll: true,
+        forceFormData: true,
         onSuccess: () => {
             Alert("success", "Updated!", "Staff information has been updated.");
         },
-        onError: () => {
+        onError: (errors) => {
             Alert("error", "Failed", "Check your data again.");
         },
     });
@@ -377,7 +378,7 @@ const submit = () => {
                                             'text-gray-400': !form.position_id,
                                             'text-gray-900': form.position_id,
                                         }"
-                                        class="mt-1 block w-full border border-gray-300 outline-none rounded-md p-2 text-sm cursor-pointer"
+                                        class="mt-1 block w-full border border-gray-300 outline-none leading-7 rounded-md p-2 text-sm cursor-pointer font-siemreap"
                                     >
                                         <option value="" disabled>
                                             Select a position
@@ -386,6 +387,7 @@ const submit = () => {
                                             v-for="pos in positions"
                                             :key="pos.id"
                                             :value="pos.id"
+                                            class="text-gray-900 font-siemreap"
                                         >
                                             {{ pos.name }}
                                         </option>

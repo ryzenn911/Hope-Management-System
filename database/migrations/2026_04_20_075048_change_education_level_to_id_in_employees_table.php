@@ -12,9 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('employees', function (Blueprint $table) {
-            // លុប column ចាស់ចោល
             $table->dropColumn('education_level');
-            // បន្ថែម column ថ្មីជា Foreign Key
             $table->foreignId('education_id')->nullable()->after('address_id')->constrained('education_levels');
         });
     }

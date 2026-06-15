@@ -1,10 +1,12 @@
 <?php
 
 namespace App\Http\Controllers\Admin;
+
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
-use Inertia\Inertia;
+use App\Models\Position;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
@@ -12,9 +14,19 @@ class DashboardController extends Controller
     {
         $totalStaff = Employee::query()->count('id');
         $activeStaffCount = Employee::query()->where('status', 'active')->count();
+
+        $positionData = Position::withCount(['employees' => function ($query) {
+            $query->where('status', 'Active');
+        }])->get();
+
+        $chartLabels = $positionData->pluck('name');
+        $chartCounts = $positionData->pluck('employees_count');
+
         return Inertia::render('Admin/Dashboard', [
             'activeStaffCount' => $activeStaffCount,
-            'totalStaff' => $totalStaff
+            'totalStaff' => $totalStaff,
+            'chartLabels' => $chartLabels,
+            'chartCounts' => $chartCounts,
         ]);
     }
 }
