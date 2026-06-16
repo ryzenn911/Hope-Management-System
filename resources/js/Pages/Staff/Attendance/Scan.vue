@@ -75,8 +75,6 @@ onBeforeUnmount(() => {
 function onScanSuccess(decodedText) {
     if (isProcessing.value) return;
     isProcessing.value = true;
-
-    // បិទដំណើរការកាមេរ៉ាបណ្តោះអាសន្នសិន ដើម្បីកុំឱ្យវាស្កេនជាន់គ្នាពេលកំពុងផ្ញើទៅ Backend
     if (html5Qrcode && html5Qrcode.isScanning) {
         html5Qrcode.stop().catch((err) => console.error(err));
     }
@@ -104,7 +102,7 @@ function onScanSuccess(decodedText) {
                     requestCameraAndStart();
                 });
             },
-            { enableHighAccuracy: true, timeout: 10000 }, // បើហួស ១០ វិនាទី ចាត់ទុកថាយឺត (Timeout)
+            { enableHighAccuracy: true, timeout: 10000 },
         );
     } else {
         isProcessing.value = false;

@@ -19,22 +19,21 @@ class AttendanceController extends Controller
 
     public function store(Request $request)
     {
-        // កែប្រែ៖ បន្ថែមការ Validate 'qr_code'
         $request->validate([
             'qr_code' => 'required|string',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
         ]);
 
-        // ១. ផ្ទៀងផ្ទាត់ QR Code របស់ក្រុមហ៊ុន
-        $validQrCode = 'HOPE_FOR_CAMBODIAN_CHILDREN_FOUNDATION'; // អាចប្តូរតាមចិត្តអ្នក
+        // ១. ផ្ទៀងផ្ទាត់ QR Code (ប្តូរតម្លៃឱ្យត្រូវនឹង QR ថ្មីដែលបង្កើតដោយ Admin)
+        $validQrCode = 'HOPE_ATTENDANCE';
         if ($request->qr_code !== $validQrCode) {
             return back()->withErrors([
                 'error' => 'ការស្កេនបរាជ័យ! QR Code នេះមិនត្រឹមត្រូវ ឬមិនមែនជារបស់ក្រុមហ៊ុនឡើយ។',
             ]);
         }
 
-        // ២. ផ្ទៀងផ្ទាត់ចម្ងាយ GPS (កូដដើមរបស់អ្នក)
+        // ២. ផ្ទៀងផ្ទាត់ចម្ងាយ GPS
         $officeLat = 12.774667;
         $officeLng = 103.450524;
         $allowedRadius = 50;
@@ -50,7 +49,7 @@ class AttendanceController extends Controller
 
         if ($distance > $allowedRadius) {
             return back()->withErrors([
-                'error' => 'ការស្កេនបរាជ័យ! អ្នកស្ថិតនៅក្រៅបរិវេណក្រុមហ៊ុន '.round($distance).' ម៉ែត្រ។',
+                'error' => 'ការស្កេនបរាជ័យ! អ្នកស្ថិតនៅក្រៅបរិវេណក្រុមហ៊ុនប្រហែល '.round($distance).' ម៉ែត្រ។',
             ]);
         }
 
@@ -59,7 +58,7 @@ class AttendanceController extends Controller
         $employee = $user->employee;
 
         if (! $employee) {
-            return back()->withErrors(['error' => 'មិនសាកសម! គណនីរបស់អ្នកមិនមានទិន្នន័យបុគ្គលិកឡើយ។']);
+            return back()->withErrors(['error' => 'គណនីរបស់អ្នកមិនមានទិន្នន័យបុគ្គលិកឡើយ។']);
         }
 
         $positionId = $employee->position_id;
@@ -77,7 +76,7 @@ class AttendanceController extends Controller
             ->where('date', $today)
             ->first();
 
-        // ៤. Logic កត់ត្រាវត្តមាន ៤ ពេល (កូដដើមរបស់អ្នក)
+        // ៤. Logic កត់ត្រាវត្តមាន ៤ ពេល (កែប្រែត្រង់កន្លែង return redirect ពេលជោគជ័យ)
         if (! $attendance) {
             $mornInRule = Carbon::parse($shift->morn_in_time);
             $mornStatus = $now->greaterThan($mornInRule) ? 'Late' : 'Present';
@@ -88,7 +87,8 @@ class AttendanceController extends Controller
                 'morn_status' => $mornStatus,
             ]);
 
-            return back()->with('success', 'Check-in វគ្គពេលព្រឹកជោគជ័យ!');
+            // កែប្រែ៖ រុញទៅទំព័រ Dashboard វិញភ្លាមៗពេលជោគជ័យ
+            return to_route('staff.dashboard')->with('success', 'Check-in វគ្គពេលព្រឹកជោគជ័យ!');
         }
 
         if ($attendance->check_out_morn === null) {
@@ -98,7 +98,8 @@ class AttendanceController extends Controller
             }
             $attendance->update(['check_out_morn' => $nowTime]);
 
-            return back()->with('success', 'Check-out វគ្គពេលព្រឹកជោគជ័យ!');
+            // កែប្រែ៖ រុញទៅទំព័រ Dashboard
+            return to_route('staff.dashboard')->with('success', 'Check-out វគ្គពេលព្រឹកជោគជ័យ!');
         }
 
         if ($attendance->check_in_aft === null) {
@@ -109,7 +110,8 @@ class AttendanceController extends Controller
                 'aft_status' => $aftStatus,
             ]);
 
-            return back()->with('success', 'Check-in វគ្គពេលរសៀលជោគជ័យ!');
+            // កែប្រែ៖ រុញទៅទំព័រ Dashboard
+            return to_route('staff.dashboard')->with('success', 'Check-in វគ្គពេលរសៀលជោគជ័យ!');
         }
 
         if ($attendance->check_out_aft === null) {
@@ -119,7 +121,8 @@ class AttendanceController extends Controller
             }
             $attendance->update(['check_out_aft' => $nowTime]);
 
-            return back()->with('success', 'Check-out វគ្គពេលល្ងាចជោគជ័យ!');
+            // កែប្រែ៖ រុញទៅទំព័រ Dashboard
+            return to_route('staff.dashboard')->with('success', 'Check-out វគ្គពេលល្ងាចជោគជ័យ!');
         }
 
         return back()->withErrors(['error' => 'អ្នកបានបំពេញវត្តមានគ្រប់ ៤ ពេលរួចរាល់ហើយសម្រាប់ថ្ងៃនេះ!']);
