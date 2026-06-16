@@ -4,14 +4,16 @@ import { Head, Link, usePage, router } from "@inertiajs/vue3";
 import { Html5Qrcode } from "html5-qrcode";
 import { computed, ref } from "vue";
 
+// 💡 កែប្រែ Props ឱ្យត្រូវទៅតាមទិន្នន័យដែលបោះមកពី Laravel Controller ថ្មី
 const props = defineProps({
-    weeklyRecords: Array,
-    weekRange: String,
-    currentDate: String,
+    todayRecord: Object, // ទទួលយក Object វត្តមានថ្ងៃនេះ (ឬ null បើមិនទាន់ស្កេន)
 });
 
 const isCheckingPermission = ref(false);
 
+/**
+ * មុខងារសម្រាប់ឆែកសិទ្ធិកាមេរ៉ា និងបញ្ជូនទៅកាន់ទំព័រស្កេន QR Code
+ */
 async function handleAttendanceClick() {
     if (isCheckingPermission.value) return;
     isCheckingPermission.value = true;
@@ -32,27 +34,9 @@ async function handleAttendanceClick() {
     }
 }
 
+// ទាញយកព័ត៌មាន User ដែលបាន Login ជាប់
 const page = usePage();
 const user = computed(() => page.props.auth.user);
-
-const changeWeek = (direction) => {
-    let date = new Date(props.currentDate);
-    if (direction === "next") {
-        date.setDate(date.getDate() + 7);
-    } else {
-        date.setDate(date.getDate() - 7);
-    }
-
-    // បាញ់ទៅ Controller វិញតាមរយៈ Query String
-    router.get(
-        route("staff.dashboard"),
-        { date: date.toISOString().split("T")[0] },
-        {
-            preserveState: true,
-            preserveScroll: true,
-        },
-    );
-};
 </script>
 
 <template>
@@ -169,12 +153,192 @@ const changeWeek = (direction) => {
                     </Link>
                 </div>
                 <div
-                    class="flex flex-col md:flex-row md:items-center md:justify-between px-5 mb-6 gap-4"
+                    class="bg-white rounded-3xl border border-gray-100 shadow-sm mx-5 mb-10 overflow-hidden"
                 >
-                    <div class="flex items-center space-x-2">
-                        <div class="p-2 bg-blue-50 rounded-lg">
+                    <div
+                        class="flex items-center justify-between px-6 py-4 border-b border-gray-50 bg-gray-50/50"
+                    >
+                        <div class="flex items-center space-x-2">
+                            <div class="p-2 bg-blue-50 rounded-xl">
+                                <svg
+                                    class="w-5 h-5 text-[#01AAEB]"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3
+                                    class="text-gray-800 font-bold font-siemreap text-base leading-tight"
+                                >
+                                    វត្តមានថ្ងៃនេះ
+                                </h3>
+                                <p
+                                    class="text-[11px] text-gray-400 font-poppins"
+                                >
+                                    Today's Attendance
+                                </p>
+                            </div>
+                        </div>
+                        <span
+                            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-[#01AAEB] font-poppins animate-pulse"
+                        >
+                            Today
+                        </span>
+                    </div>
+
+                    <div class="p-6">
+                        <div
+                            v-if="props.todayRecord"
+                            class="grid grid-cols-1 md:grid-cols-2 gap-4"
+                        >
+                            <div
+                                class="p-4 rounded-2xl bg-slate-50 border border-slate-100/50 flex flex-col justify-between gap-4"
+                            >
+                                <div class="flex items-center justify-between">
+                                    <span
+                                        class="text-sm font-bold text-blue-600 font-siemreap"
+                                        >វេនព្រឹក (Morning)</span
+                                    >
+                                    <span
+                                        v-if="props.todayRecord.check_in_morn"
+                                        :class="{
+                                            'text-emerald-600 bg-emerald-50 border-emerald-100':
+                                                props.todayRecord.morn_status?.toLowerCase() ===
+                                                'present',
+                                            'text-amber-600 bg-amber-50 border-amber-100':
+                                                props.todayRecord.morn_status?.toLowerCase() ===
+                                                'late',
+                                        }"
+                                        class="text-[10px] font-bold px-2.5 py-0.5 rounded-full border uppercase font-poppins"
+                                    >
+                                        {{
+                                            props.todayRecord.morn_status?.toLowerCase() ===
+                                            "late"
+                                                ? "យឺត / Late"
+                                                : "ទាន់ពេល / Present"
+                                        }}
+                                    </span>
+                                    <span
+                                        v-else
+                                        class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-500 border border-rose-100 font-siemreap"
+                                        >អវត្តមាន</span
+                                    >
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-2 text-center">
+                                    <div
+                                        class="p-2 bg-white rounded-xl border border-gray-100"
+                                    >
+                                        <span
+                                            class="block text-[10px] text-gray-400 uppercase font-poppins"
+                                            >Morn In</span
+                                        >
+                                        <span
+                                            class="text-base font-bold text-gray-700 font-poppins"
+                                            >{{
+                                                props.todayRecord
+                                                    .check_in_morn || "-- : --"
+                                            }}</span
+                                        >
+                                    </div>
+                                    <div
+                                        class="p-2 bg-white rounded-xl border border-gray-100"
+                                    >
+                                        <span
+                                            class="block text-[10px] text-gray-400 uppercase font-poppins"
+                                            >Morn Out</span
+                                        >
+                                        <span
+                                            class="text-base font-bold text-gray-700 font-poppins"
+                                            >{{
+                                                props.todayRecord
+                                                    .check_out_morn || "-- : --"
+                                            }}</span
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div
+                                class="p-4 rounded-2xl bg-slate-50 border border-slate-100/50 flex flex-col justify-between gap-4"
+                            >
+                                <div class="flex items-center justify-between">
+                                    <span
+                                        class="text-sm font-bold text-indigo-600 font-siemreap"
+                                        >វេនល្ងាច (Afternoon)</span
+                                    >
+                                    <span
+                                        v-if="props.todayRecord.check_in_aft"
+                                        :class="{
+                                            'text-indigo-600 bg-indigo-50 border-indigo-100':
+                                                props.todayRecord.aft_status?.toLowerCase() ===
+                                                'present',
+                                            'text-amber-600 bg-amber-50 border-amber-100':
+                                                props.todayRecord.aft_status?.toLowerCase() ===
+                                                'late',
+                                        }"
+                                        class="text-[10px] font-bold px-2.5 py-0.5 rounded-full border uppercase font-poppins"
+                                    >
+                                        {{
+                                            props.todayRecord.aft_status?.toLowerCase() ===
+                                            "late"
+                                                ? "យឺត / Late"
+                                                : "ទាន់ពេល / Present"
+                                        }}
+                                    </span>
+                                    <span
+                                        v-else
+                                        class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-500 border border-rose-100 font-siemreap"
+                                        >អវត្តមាន</span
+                                    >
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-2 text-center">
+                                    <div
+                                        class="p-2 bg-white rounded-xl border border-gray-100"
+                                    >
+                                        <span
+                                            class="block text-[10px] text-gray-400 uppercase font-poppins"
+                                            >Aft In</span
+                                        >
+                                        <span
+                                            class="text-base font-bold text-gray-700 font-poppins"
+                                            >{{
+                                                props.todayRecord
+                                                    .check_in_aft || "-- : --"
+                                            }}</span
+                                        >
+                                    </div>
+                                    <div
+                                        class="p-2 bg-white rounded-xl border border-gray-100"
+                                    >
+                                        <span
+                                            class="block text-[10px] text-gray-400 uppercase font-poppins"
+                                            >Aft Out</span
+                                        >
+                                        <span
+                                            class="text-base font-bold text-gray-700 font-poppins"
+                                            >{{
+                                                props.todayRecord
+                                                    .check_out_aft || "-- : --"
+                                            }}</span
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-else class="text-center py-8">
                             <svg
-                                class="w-5 h-5 text-[#01AAEB]"
+                                class="w-12 h-12 text-gray-300 mx-auto mb-2"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -182,262 +346,19 @@ const changeWeek = (direction) => {
                                 <path
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                    stroke-width="1.5"
+                                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                                 />
                             </svg>
-                        </div>
-                        <div>
-                            <h3
-                                class="text-gray-800 font-bold font-siemreap text-base leading-tight"
+                            <p
+                                class="text-gray-400 font-bold text-sm font-siemreap"
                             >
-                                វត្តមានប្រចាំសប្ដាហ៍
-                            </h3>
-                            <p class="text-[11px] text-gray-500 font-poppins">
-                                Weekly Attendance (Mon - Fri)
+                                មិនទាន់មានទិន្នន័យវត្តមាននៅឡើយទេ
+                            </p>
+                            <p class="text-[11px] text-gray-400 font-poppins">
+                                No attendance record found for today.
                             </p>
                         </div>
-                    </div>
-
-                    <div
-                        class="flex items-center space-x-2 bg-white border border-gray-200 rounded-2xl p-1.5 shadow-sm"
-                    >
-                        <button
-                            @click="changeWeek('prev')"
-                            class="p-2 hover:bg-gray-100 rounded-xl text-gray-500 transition-all active:scale-90"
-                        >
-                            <svg
-                                class="w-5 h-5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M15 19l-7-7 7-7"
-                                />
-                            </svg>
-                        </button>
-                        <div class="px-4 text-center">
-                            <span
-                                class="block text-[10px] text-gray-400 uppercase font-bold tracking-widest font-poppins"
-                                >Selected Week</span
-                            >
-                            <span
-                                class="text-sm font-bold text-gray-700 font-poppins"
-                                >{{ props.weekRange }}</span
-                            >
-                        </div>
-                        <button
-                            @click="changeWeek('next')"
-                            class="p-2 hover:bg-gray-100 rounded-xl text-gray-500 transition-all active:scale-90"
-                        >
-                            <svg
-                                class="w-5 h-5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M9 5l7 7-7 7"
-                                />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                <div
-                    class="overflow-hidden bg-white rounded-3xl border border-gray-100 shadow-sm mx-5 mb-10"
-                >
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr
-                                    class="bg-gray-50/80 border-b border-gray-100"
-                                >
-                                    <th
-                                        class="p-4 text-[11px] font-bold text-gray-400 uppercase font-poppins w-44"
-                                    >
-                                        Day / Date
-                                    </th>
-                                    <th
-                                        class="p-2 text-[11px] font-bold text-blue-500 uppercase font-poppins text-center border-l border-gray-100/50"
-                                    >
-                                        Morn In
-                                    </th>
-                                    <th
-                                        class="p-2 text-[11px] font-bold text-blue-500 uppercase font-poppins text-center border-r border-gray-100/50"
-                                    >
-                                        Morn Out
-                                    </th>
-                                    <th
-                                        class="p-2 text-[11px] font-bold text-indigo-500 uppercase font-poppins text-center"
-                                    >
-                                        Aft In
-                                    </th>
-                                    <th
-                                        class="p-2 text-[11px] font-bold text-indigo-500 uppercase font-poppins text-center border-r border-gray-100/50"
-                                    >
-                                        Aft Out
-                                    </th>
-                                    <th
-                                        class="p-4 text-[11px] font-bold text-gray-400 uppercase font-poppins text-center w-32"
-                                    >
-                                        Status
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-50">
-                                <tr
-                                    v-for="item in props.weeklyRecords"
-                                    :key="item.date"
-                                    class="hover:bg-blue-50/30 transition-colors group whitespace-nowrap"
-                                >
-                                    <td class="p-4">
-                                        <div
-                                            class="text-sm font-bold text-gray-800 font-poppins"
-                                        >
-                                            {{ item.display_date }}
-                                        </div>
-                                        <div
-                                            class="text-[11px] text-gray-400 font-siemreap"
-                                        >
-                                            ថ្ងៃ{{ item.kh_day }} /
-                                            {{ item.day_name }}
-                                        </div>
-                                    </td>
-
-                                    <td
-                                        class="p-4 text-center border-l border-gray-100/30"
-                                    >
-                                        <span
-                                            v-if="item.record?.check_in_morn"
-                                            :class="{
-                                                'text-emerald-600 bg-emerald-50':
-                                                    item.record.morn_status?.toLowerCase() ===
-                                                    'present',
-                                                'text-amber-600 bg-amber-50':
-                                                    item.record.morn_status?.toLowerCase() ===
-                                                    'late',
-                                            }"
-                                            class="text-xs font-bold px-2.5 py-1 rounded-lg block mx-auto w-max border border-transparent"
-                                        >
-                                            {{ item.record.check_in_morn }}
-                                            <span
-                                                class="text-[9px] block font-normal font-siemreap"
-                                            >
-                                                {{
-                                                    item.record.morn_status?.toLowerCase() ===
-                                                    "late"
-                                                        ? "យឺត"
-                                                        : "ទាន់"
-                                                }}
-                                            </span>
-                                        </span>
-                                        <span
-                                            v-else
-                                            class="text-gray-300 text-xs font-poppins"
-                                            >-- : --</span
-                                        >
-                                    </td>
-
-                                    <td
-                                        class="p-4 text-center border-r border-gray-100/30"
-                                    >
-                                        <span
-                                            v-if="item.record?.check_out_morn"
-                                            class="text-xs font-bold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-lg"
-                                        >
-                                            {{ item.record.check_out_morn }}
-                                        </span>
-                                        <span
-                                            v-else
-                                            class="text-gray-300 text-xs font-poppins"
-                                            >-- : --</span
-                                        >
-                                    </td>
-
-                                    <td class="p-4 text-center">
-                                        <span
-                                            v-if="item.record?.check_in_aft"
-                                            :class="{
-                                                'text-indigo-600 bg-indigo-50':
-                                                    item.record.aft_status?.toLowerCase() ===
-                                                    'present',
-                                                'text-amber-600 bg-amber-50':
-                                                    item.record.aft_status?.toLowerCase() ===
-                                                    'late',
-                                            }"
-                                            class="text-xs font-bold px-2.5 py-1 rounded-lg block mx-auto w-max"
-                                        >
-                                            {{ item.record.check_in_aft }}
-                                            <span
-                                                class="text-[9px] block font-normal font-siemreap"
-                                            >
-                                                {{
-                                                    item.record.aft_status?.toLowerCase() ===
-                                                    "late"
-                                                        ? "យឺត"
-                                                        : "ទាន់"
-                                                }}
-                                            </span>
-                                        </span>
-                                        <span
-                                            v-else
-                                            class="text-gray-300 text-xs font-poppins"
-                                            >-- : --</span
-                                        >
-                                    </td>
-
-                                    <td
-                                        class="p-4 text-center border-r border-gray-100/30"
-                                    >
-                                        <span
-                                            v-if="item.record?.check_out_aft"
-                                            class="text-xs font-bold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-lg"
-                                        >
-                                            {{ item.record.check_out_aft }}
-                                        </span>
-                                        <span
-                                            v-else
-                                            class="text-gray-300 text-xs font-poppins"
-                                            >-- : --</span
-                                        >
-                                    </td>
-
-                                    <td class="p-4 text-center">
-                                        <span
-                                            v-if="item.record"
-                                            :class="{
-                                                'bg-emerald-50 text-emerald-600 border-emerald-100':
-                                                    item.record.status ===
-                                                    'present',
-                                                'bg-amber-50 text-amber-600 border-amber-100':
-                                                    item.record.status ===
-                                                    'late',
-                                                'bg-rose-50 text-rose-600 border-rose-100':
-                                                    item.record.status ===
-                                                    'absent',
-                                            }"
-                                            class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase border font-poppins"
-                                        >
-                                            {{ item.record.status }}
-                                        </span>
-                                        <span
-                                            v-else
-                                            class="text-gray-300 text-[10px] font-bold uppercase italic font-poppins"
-                                        >
-                                            No Record
-                                        </span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
                     </div>
                 </div>
             </div>
