@@ -2,7 +2,7 @@
 import { onBeforeUnmount, ref, onMounted } from "vue";
 import { router, usePage } from "@inertiajs/vue3";
 import { Html5Qrcode } from "html5-qrcode";
-import Swal from "sweetalert2"; // ហៅចូល SweetAlert2
+import Swal from "sweetalert2";
 
 const scanResult = ref(null);
 const errorMessage = ref("");
@@ -10,7 +10,6 @@ const isProcessing = ref(false);
 const hasCameraPermission = ref(false);
 let html5Qrcode = null;
 
-// បង្ហាញការ Loading បែបប្រព័ន្ធលោតពេញអេក្រង់
 function showLoading(message) {
     Swal.fire({
         title: message,
@@ -21,7 +20,6 @@ function showLoading(message) {
     });
 }
 
-// ទំព័ររត់ឡើង ឱ្យវាកាត់ទៅ Request សុំបើកកាមេរ៉ាអូតូភ្លាម
 onMounted(() => {
     requestCameraAndStart();
 });
@@ -79,7 +77,7 @@ function onScanSuccess(decodedText) {
         html5Qrcode.stop().catch((err) => console.error(err));
     }
 
-    showLoading("កំពុងផ្ទៀងផ្ទាត់ GPS និងទិន្នន័យ...");
+    showLoading("កំពុងផ្ទៀងផ្ទាត់ទីតាំង និងទិន្នន័យ...");
 
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -98,7 +96,6 @@ function onScanSuccess(decodedText) {
                     text: "សូមបើក Location (GPS) លើទូរស័ព្ទរបស់អ្នក រួចព្យាយាមម្តងទៀត។",
                     confirmButtonText: "យល់ព្រម",
                 }).then(() => {
-                    // បើខុស GPS ឱ្យវាបើកកាមេរ៉ាដំណើរការឡើងវិញ
                     requestCameraAndStart();
                 });
             },
@@ -142,7 +139,6 @@ function sendDataToBackend(qrCodeText, lat, lng) {
                     timer: 2500,
                     showConfirmButton: false,
                 }).then(() => {
-                    // រុញត្រឡប់ទៅកាន់ទំព័រ Dashboard វិញអូតូ
                     router.visit(route("staff.dashboard"));
                 });
 

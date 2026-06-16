@@ -261,24 +261,32 @@ const changeWeek = (direction) => {
                                     class="bg-gray-50/80 border-b border-gray-100"
                                 >
                                     <th
-                                        class="p-4 text-[11px] font-bold text-gray-400 uppercase font-poppins w-48"
+                                        class="p-4 text-[11px] font-bold text-gray-400 uppercase font-poppins w-44"
                                     >
                                         Day / Date
                                     </th>
                                     <th
-                                        colspan="2"
-                                        class="p-4 text-[11px] font-bold text-blue-500 uppercase font-poppins text-center border-x border-gray-100/50"
+                                        class="p-2 text-[11px] font-bold text-blue-500 uppercase font-poppins text-center border-l border-gray-100/50"
                                     >
-                                        Morning
+                                        Morn In
                                     </th>
                                     <th
-                                        colspan="2"
-                                        class="p-4 text-[11px] font-bold text-indigo-500 uppercase font-poppins text-center border-r border-gray-100/50"
+                                        class="p-2 text-[11px] font-bold text-blue-500 uppercase font-poppins text-center border-r border-gray-100/50"
                                     >
-                                        Afternoon
+                                        Morn Out
                                     </th>
                                     <th
-                                        class="p-4 text-[11px] font-bold text-gray-400 uppercase font-poppins text-center"
+                                        class="p-2 text-[11px] font-bold text-indigo-500 uppercase font-poppins text-center"
+                                    >
+                                        Aft In
+                                    </th>
+                                    <th
+                                        class="p-2 text-[11px] font-bold text-indigo-500 uppercase font-poppins text-center border-r border-gray-100/50"
+                                    >
+                                        Aft Out
+                                    </th>
+                                    <th
+                                        class="p-4 text-[11px] font-bold text-gray-400 uppercase font-poppins text-center w-32"
                                     >
                                         Status
                                     </th>
@@ -305,32 +313,35 @@ const changeWeek = (direction) => {
                                     </td>
 
                                     <td
-                                        class="p-4 text-center border-x border-gray-100/30"
+                                        class="p-4 text-center border-l border-gray-100/30"
                                     >
                                         <span
                                             v-if="item.record?.check_in_morn"
-                                            class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg"
+                                            :class="{
+                                                'text-emerald-600 bg-emerald-50':
+                                                    item.record.morn_status?.toLowerCase() ===
+                                                    'present',
+                                                'text-amber-600 bg-amber-50':
+                                                    item.record.morn_status?.toLowerCase() ===
+                                                    'late',
+                                            }"
+                                            class="text-xs font-bold px-2.5 py-1 rounded-lg block mx-auto w-max border border-transparent"
                                         >
                                             {{ item.record.check_in_morn }}
+                                            <span
+                                                class="text-[9px] block font-normal font-siemreap"
+                                            >
+                                                {{
+                                                    item.record.morn_status?.toLowerCase() ===
+                                                    "late"
+                                                        ? "យឺត"
+                                                        : "ទាន់"
+                                                }}
+                                            </span>
                                         </span>
                                         <span
                                             v-else
-                                            class="text-gray-300 text-xs"
-                                            >-- : --</span
-                                        >
-                                    </td>
-                                    <td
-                                        class="p-4 text-center border-r border-gray-100/30"
-                                    >
-                                        <span
-                                            v-if="item.record?.check_out_morn"
-                                            class="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-lg"
-                                        >
-                                            {{ item.record.check_out_morn }}
-                                        </span>
-                                        <span
-                                            v-else
-                                            class="text-gray-300 text-xs"
+                                            class="text-gray-300 text-xs font-poppins"
                                             >-- : --</span
                                         >
                                     </td>
@@ -339,29 +350,62 @@ const changeWeek = (direction) => {
                                         class="p-4 text-center border-r border-gray-100/30"
                                     >
                                         <span
-                                            v-if="item.record?.check_in_aft"
-                                            class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg"
+                                            v-if="item.record?.check_out_morn"
+                                            class="text-xs font-bold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-lg"
                                         >
-                                            {{ item.record.check_in_aft }}
+                                            {{ item.record.check_out_morn }}
                                         </span>
                                         <span
                                             v-else
-                                            class="text-gray-300 text-xs"
+                                            class="text-gray-300 text-xs font-poppins"
                                             >-- : --</span
                                         >
                                     </td>
+
+                                    <td class="p-4 text-center">
+                                        <span
+                                            v-if="item.record?.check_in_aft"
+                                            :class="{
+                                                'text-indigo-600 bg-indigo-50':
+                                                    item.record.aft_status?.toLowerCase() ===
+                                                    'present',
+                                                'text-amber-600 bg-amber-50':
+                                                    item.record.aft_status?.toLowerCase() ===
+                                                    'late',
+                                            }"
+                                            class="text-xs font-bold px-2.5 py-1 rounded-lg block mx-auto w-max"
+                                        >
+                                            {{ item.record.check_in_aft }}
+                                            <span
+                                                class="text-[9px] block font-normal font-siemreap"
+                                            >
+                                                {{
+                                                    item.record.aft_status?.toLowerCase() ===
+                                                    "late"
+                                                        ? "យឺត"
+                                                        : "ទាន់"
+                                                }}
+                                            </span>
+                                        </span>
+                                        <span
+                                            v-else
+                                            class="text-gray-300 text-xs font-poppins"
+                                            >-- : --</span
+                                        >
+                                    </td>
+
                                     <td
                                         class="p-4 text-center border-r border-gray-100/30"
                                     >
                                         <span
                                             v-if="item.record?.check_out_aft"
-                                            class="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-lg"
+                                            class="text-xs font-bold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-lg"
                                         >
                                             {{ item.record.check_out_aft }}
                                         </span>
                                         <span
                                             v-else
-                                            class="text-gray-300 text-xs"
+                                            class="text-gray-300 text-xs font-poppins"
                                             >-- : --</span
                                         >
                                     </td>
@@ -380,15 +424,16 @@ const changeWeek = (direction) => {
                                                     item.record.status ===
                                                     'absent',
                                             }"
-                                            class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase border"
+                                            class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase border font-poppins"
                                         >
                                             {{ item.record.status }}
                                         </span>
                                         <span
                                             v-else
-                                            class="text-gray-300 text-[10px] font-bold uppercase italic"
-                                            >No Record</span
+                                            class="text-gray-300 text-[10px] font-bold uppercase italic font-poppins"
                                         >
+                                            No Record
+                                        </span>
                                     </td>
                                 </tr>
                             </tbody>
