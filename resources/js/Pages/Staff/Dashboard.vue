@@ -1,23 +1,61 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Head, Link, usePage, router } from "@inertiajs/vue3";
-import { computed, ref } from "vue";
+import { onMounted, computed, ref } from "vue";
+import flatpickr from "flatpickr";
+import "flatpickr/dist/flatpickr.css";
 
-// ទទួលយក Object វត្តមានថ្ងៃនេះ មកពី Laravel Controller
 const props = defineProps({
     todayRecord: Object,
+    selectedDate: String,
+    isToday: Boolean,
 });
 
+const datePickerRef = ref(null);
+
+onMounted(() => {
+    flatpickr(datePickerRef.value, {
+        defaultDate: props.selectedDate,
+        dateFormat: "d-m-Y",
+        maxDate: "today",
+        disable: [
+            function (date) {
+                return date.getDay() === 0 || date.getDay() === 6;
+            },
+        ],
+        altInput: true,
+        altFormat: "d-m-Y",
+        formatDate: (date, format, locale) => {
+            const today = new Date();
+            if (
+                date.getDate() === today.getDate() &&
+                date.getMonth() === today.getMonth() &&
+                date.getFullYear() === today.getFullYear()
+            ) {
+                return "Today";
+            }
+            const dd = String(date.getDate()).padStart(2, "0");
+            const mm = String(date.getMonth() + 1).padStart(2, "0");
+            const yyyy = date.getFullYear();
+            return `${dd}-${mm}-${yyyy}`;
+        },
+        onChange: (selectedDates, dateStr) => {
+            router.get(
+                route("staff.dashboard"),
+                { date: dateStr },
+                {
+                    preserveState: true,
+                    preserveScroll: true,
+                },
+            );
+        },
+    });
+});
 const isRedirecting = ref(false);
 
-/**
- * បញ្ជូនទៅកាន់ទំព័រស្កេន QR Code
- */
 function handleAttendanceClick() {
     if (isRedirecting.value) return;
     isRedirecting.value = true;
-
-    // បញ្ជូនទៅទំព័រ Scan ហើយទុកឱ្យទំព័រ Scan នោះជាអ្នកសុំសិទ្ធិកាមេរ៉ា និងបើកកាមេរ៉ា
     router.visit(route("staff.attendance.scan"), {
         onFinish: () => {
             isRedirecting.value = false;
@@ -25,7 +63,6 @@ function handleAttendanceClick() {
     });
 }
 
-// ទាញយកព័ត៌មាន User ដែលបាន Login
 const page = usePage();
 const user = computed(() => page.props.auth.user);
 </script>
@@ -142,24 +179,45 @@ const user = computed(() => page.props.auth.user);
                 </div>
 
                 <div
+                    class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100"
+                >
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-800">
+                            Attendance History
+                        </h1>
+                        <p class="text-sm text-gray-500">
+                            Select a date to view attendance records
+                        </p>
+                    </div>
+
+                    <div class="relative w-full sm:w-64">
+                        <label
+                            class="block text-xs font-semibold text-gray-600 mb-1"
+                            >Filter by Date:</label
+                        >
+                        <input
+                            ref="datePickerRef"
+                            type="text"
+                            class="w-full bg-gray-50 border border-gray-300 text-gray-950 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 font-mono cursor-pointer"
+                            placeholder="Select Date"
+                            readonly
+                        />
+                    </div>
+                </div>
+
+                <div
                     class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
                 >
                     <table
                         class="w-full border-collapse text-left text-sm text-gray-500"
                     >
                         <thead
-                            class="bg-gray-50 text-xs font-semibold uppercase text-gray-700 font-siemreap"
+                            class="bg-gray-50 text-xs font-semibold uppercase text-gray-700 font-siemreap whitespace-nowrap"
                         >
                             <tr>
-                                <th scope="col" class="px-6 py-4">
-                                    វេនការងារ
-                                </th>
-                                <th scope="col" class="px-6 py-4">
-                                    ម៉ោងចូល
-                                </th>
-                                <th scope="col" class="px-6 py-4">
-                                    ម៉ោងចេញ
-                                </th>
+                                <th scope="col" class="px-6 py-4">វេនការងារ</th>
+                                <th scope="col" class="px-6 py-4">ម៉ោងចូល</th>
+                                <th scope="col" class="px-6 py-4">ម៉ោងចេញ</th>
                                 <th scope="col" class="px-6 py-4 text-right">
                                     ស្ថានភាព
                                 </th>
@@ -170,16 +228,22 @@ const user = computed(() => page.props.auth.user);
                             class="divide-y divide-gray-150 border-t border-gray-150 text-gray-900 font-medium"
                         >
                             <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-6 py-4 text-[#01AAEB] font-siemreap font-bold">
+                                <td
+                                    class="px-6 py-4 text-[#01AAEB] font-siemreap font-bold text-xs xl:text-md"
+                                >
                                     វេនព្រឹក
                                 </td>
-                                <td class="px-6 py-4 font-mono text-base">
+                                <td
+                                    class="px-6 py-4 font-mono text-xs xl:text-lg"
+                                >
                                     {{
                                         props.todayRecord?.check_in_morn ||
                                         "--:--"
                                     }}
                                 </td>
-                                <td class="px-6 py-4 font-mono text-base">
+                                <td
+                                    class="px-6 py-4 font-mono text-xs xl:text-lg"
+                                >
                                     {{
                                         props.todayRecord?.check_out_morn ||
                                         "--:--"
@@ -199,7 +263,7 @@ const user = computed(() => page.props.auth.user);
                                                 props.todayRecord
                                                     .morn_status === 'Absent',
                                         }"
-                                        class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-bold ring-1 ring-inset"
+                                        class="inline-flex items-center rounded-md px-2.5 py-1 xl:text-xs text-[10px] font-bold ring-1 ring-inset"
                                     >
                                         {{
                                             props.todayRecord.morn_status ===
@@ -220,16 +284,22 @@ const user = computed(() => page.props.auth.user);
                             </tr>
 
                             <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-6 py-4 text-[#01AAEB] font-siemreap font-bold">
+                                <td
+                                    class="px-6 py-4 text-[#01AAEB] text-xs xl:text-md font-siemreap font-bold"
+                                >
                                     វេនរសៀល
                                 </td>
-                                <td class="px-6 py-4 font-mono text-base">
+                                <td
+                                    class="px-6 py-4 font-mono text-xs xl:text-lg"
+                                >
                                     {{
                                         props.todayRecord?.check_in_aft ||
                                         "--:--"
                                     }}
                                 </td>
-                                <td class="px-6 py-4 font-mono text-base">
+                                <td
+                                    class="px-6 py-4 font-mono text-xs xl:text-lg"
+                                >
                                     {{
                                         props.todayRecord?.check_out_aft ||
                                         "--:--"
@@ -249,7 +319,7 @@ const user = computed(() => page.props.auth.user);
                                                 props.todayRecord.aft_status ===
                                                 'Absent',
                                         }"
-                                        class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-bold ring-1 ring-inset"
+                                        class="inline-flex items-center rounded-md px-2.5 py-1 xl:text-xs text-[10px] font-bold ring-1 ring-inset"
                                     >
                                         {{
                                             props.todayRecord.aft_status ===
