@@ -47,7 +47,7 @@ Route::middleware(['auth'])->group(function () {
     | Staff General Dashboard Route (URL: /dashboard)
     |--------------------------------------------------------------------------
     */
-    Route::get('/dashboard', [StaffDashboardController::class, 'index'])->name('dashboard');
+    // Route::get('/dashboard', [StaffDashboardController::class, 'index'])->name('dashboard');
 
     /*
     |--------------------------------------------------------------------------
