@@ -25,7 +25,7 @@ class AttendanceController extends Controller
             'longitude' => 'required|numeric',
         ]);
 
-        // ១. ផ្ទៀងផ្ទាត់ QR Code (ប្តូរតម្លៃឱ្យត្រូវនឹង QR ថ្មីដែលបង្កើតដោយ Admin)
+        // ១. ផ្ទៀងផ្ទាត់ QR Code (ប្រើប្រាស់តម្លៃក្រុមហ៊ុនរបស់អ្នក)
         $validQrCode = 'HOPE_ATTENDANCE';
         if ($request->qr_code !== $validQrCode) {
             return back()->withErrors([
@@ -76,7 +76,7 @@ class AttendanceController extends Controller
             ->where('date', $today)
             ->first();
 
-        // ៤. Logic កត់ត្រាវត្តមាន ៤ ពេល (កែប្រែត្រង់កន្លែង return redirect ពេលជោគជ័យ)
+        // ៤. Logic កត់ត្រាវត្តមាន ៤ ពេល (ដក Leave_Early ចេញ និងប្តូរមកប្រើ return back() ទាំងអស់)
         if (! $attendance) {
             $mornInRule = Carbon::parse($shift->morn_in_time);
             $mornStatus = $now->greaterThan($mornInRule) ? 'Late' : 'Present';
@@ -87,19 +87,14 @@ class AttendanceController extends Controller
                 'morn_status' => $mornStatus,
             ]);
 
-            // កែប្រែ៖ រុញទៅទំព័រ Dashboard វិញភ្លាមៗពេលជោគជ័យ
-            return to_route('staff.dashboard')->with('success', 'Check-in វគ្គពេលព្រឹកជោគជ័យ!');
+            return back()->with('success', 'Check-in វគ្គពេលព្រឹកជោគជ័យ!');
         }
 
         if ($attendance->check_out_morn === null) {
-            $mornOutRule = Carbon::parse($shift->morn_out_time);
-            if ($now->lessThan($mornOutRule)) {
-                $attendance->morn_status = 'Leave_Early';
-            }
+            // អាប់ដេតតែម៉ោងចេញ ដោយមិនប្តូរ Status ទៅជា Leave_Early ឡើយ
             $attendance->update(['check_out_morn' => $nowTime]);
 
-            // កែប្រែ៖ រុញទៅទំព័រ Dashboard
-            return to_route('staff.dashboard')->with('success', 'Check-out វគ្គពេលព្រឹកជោគជ័យ!');
+            return back()->with('success', 'Check-out វគ្គពេលព្រឹកជោគជ័យ!');
         }
 
         if ($attendance->check_in_aft === null) {
@@ -110,19 +105,14 @@ class AttendanceController extends Controller
                 'aft_status' => $aftStatus,
             ]);
 
-            // កែប្រែ៖ រុញទៅទំព័រ Dashboard
-            return to_route('staff.dashboard')->with('success', 'Check-in វគ្គពេលរសៀលជោគជ័យ!');
+            return back()->with('success', 'Check-in វគ្គពេលរសៀលជោគជ័យ!');
         }
 
         if ($attendance->check_out_aft === null) {
-            $aftOutRule = Carbon::parse($shift->aft_out_time);
-            if ($now->lessThan($aftOutRule)) {
-                $attendance->aft_status = 'Leave_Early';
-            }
+            // អាប់ដេតតែម៉ោងចេញចុងក្រោយ ដោយមិនប្តូរ Status ឡើយ
             $attendance->update(['check_out_aft' => $nowTime]);
 
-            // កែប្រែ៖ រុញទៅទំព័រ Dashboard
-            return to_route('staff.dashboard')->with('success', 'Check-out វគ្គពេលល្ងាចជោគជ័យ!');
+            return back()->with('success', 'Check-out វគ្គពេលល្ងាចជោគជ័យ!');
         }
 
         return back()->withErrors(['error' => 'អ្នកបានបំពេញវត្តមានគ្រប់ ៤ ពេលរួចរាល់ហើយសម្រាប់ថ្ងៃនេះ!']);
