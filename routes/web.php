@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminLeaveController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DepartmentController;
+use App\Http\Controllers\Admin\AttendanceController as AdminAttendanceController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Staff\AttendanceController;
@@ -45,6 +46,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/departments', [DepartmentController::class, 'index'])->name('departments.index');
             Route::get('/leaves', [AdminLeaveController::class, 'index'])->name('admin.leaves.index');
             Route::patch('/leaves/{id}/status', [AdminLeaveController::class, 'updateStatus'])->name('admin.leaves.updateStatus');
+
+            Route::get('/attendance/office-qr', [AdminAttendanceController::class, 'showOfficeQr'])->name('attendance.office_qr');
         });
 
     Route::name('staff.')->prefix('staff')->group(function () {

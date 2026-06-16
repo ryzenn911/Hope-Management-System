@@ -1,29 +1,40 @@
 <script setup>
-import { onBeforeUnmount, ref } from "vue";
+import { onBeforeUnmount, ref, onMounted } from "vue";
 import { router, usePage } from "@inertiajs/vue3";
-import { Html5Qrcode } from "html5-qrcode"; // ប្តូរមកប្រើ Html5Qrcode វិញដើម្បីស្រួល Control កាមេរ៉ាដោយខ្លួនឯង
+import { Html5Qrcode } from "html5-qrcode";
+import Swal from "sweetalert2"; // ហៅចូល SweetAlert2
 
 const scanResult = ref(null);
 const errorMessage = ref("");
 const isProcessing = ref(false);
-const hasCameraPermission = ref(false); // សម្រាប់ឆែកមើលថាបានសិទ្ធិឬនៅ
+const hasCameraPermission = ref(false);
 let html5Qrcode = null;
 
-// Function សម្រាប់ទាមទារសិទ្ធិបើកកាមេរ៉ា និងចាប់ផ្ដើមស្កេន
+// បង្ហាញការ Loading បែបប្រព័ន្ធលោតពេញអេក្រង់
+function showLoading(message) {
+    Swal.fire({
+        title: message,
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        },
+    });
+}
+
+// ទំព័ររត់ឡើង ឱ្យវាកាត់ទៅ Request សុំបើកកាមេរ៉ាអូតូភ្លាម
+onMounted(() => {
+    requestCameraAndStart();
+});
+
 async function requestCameraAndStart() {
     errorMessage.value = "";
-
     try {
-        // បង្កើត Instance របស់ Scanner ចូលទៅក្នុង tag id="reader"
         html5Qrcode = new Html5Qrcode("reader");
-
-        // លោតសួរ Request Camera Permission ពី User ផ្ទាល់តែម្ដង
         const cameras = await Html5Qrcode.getCameras();
 
         if (cameras && cameras.length > 0) {
-            hasCameraPermission.value = true; // បើកផ្ទាំងកាមេរ៉ាលើ UI
+            hasCameraPermission.value = true;
 
-            // ជ្រើសរើសយកកាមេរ៉ាក្រោយ (Back Camera) របស់ទូរស័ព្ទជាចម្បង
             const backCamera = cameras.find(
                 (cam) =>
                     cam.label.toLowerCase().includes("back") ||
@@ -31,7 +42,6 @@ async function requestCameraAndStart() {
             );
             const cameraId = backCamera ? backCamera.id : cameras[0].id;
 
-            // ចាប់ផ្ដើមដំណើរការស្កេន
             await html5Qrcode.start(
                 cameraId,
                 {
@@ -42,14 +52,12 @@ async function requestCameraAndStart() {
                 onScanFailure,
             );
         } else {
-            errorMessage.value =
-                "រកមិនឃើញឧបករណ៍កាមេរ៉ានៅលើទូរស័ព្ទ ឬកុំព្យូទ័ររបស់អ្នកឡើយ។";
+            errorMessage.value = "រកមិនឃើញឧបករណ៍កាមេរ៉ានៅលើឧបករណ៍របស់អ្នកឡើយ។";
         }
     } catch (error) {
         hasCameraPermission.value = false;
         errorMessage.value =
-            "ការបើកកាមេរ៉ាត្រូវបានបដិសេធ! សូមចូលទៅកាន់ Setting របស់ Browser ដើម្បីបើកសិទ្ធិ (Allow Camera)។";
-        console.error("Camera access denied or error:", error);
+            "ការបើកកាមេរ៉ាត្រូវបានបដិសេធ! សូមបើកសិទ្ធិ (Allow Camera) ក្នុង Setting នៃ Browser។";
     }
 }
 
@@ -60,16 +68,20 @@ onBeforeUnmount(() => {
             .then(() => {
                 html5Qrcode.clear();
             })
-            .catch((err) => console.error("Failed to stop scanner", err));
+            .catch((err) => console.error(err));
     }
 });
 
 function onScanSuccess(decodedText) {
     if (isProcessing.value) return;
-
     isProcessing.value = true;
-    errorMessage.value = "";
-    scanResult.value = "ស្កេនបានជោគជ័យ! កំពុងផ្ទៀងផ្ទាត់ GPS...";
+
+    // បិទដំណើរការកាមេរ៉ាបណ្តោះអាសន្នសិន ដើម្បីកុំឱ្យវាស្កេនជាន់គ្នាពេលកំពុងផ្ញើទៅ Backend
+    if (html5Qrcode && html5Qrcode.isScanning) {
+        html5Qrcode.stop().catch((err) => console.error(err));
+    }
+
+    showLoading("កំពុងផ្ទៀងផ្ទាត់ GPS និងទិន្នន័យ...");
 
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -82,21 +94,31 @@ function onScanSuccess(decodedText) {
             },
             (error) => {
                 isProcessing.value = false;
-                scanResult.value = null;
-                errorMessage.value =
-                    "សូមបើក Location (GPS) លើទូរស័ព្ទរបស់អ្នកមុននឹងស្កេនវត្តមាន។";
+                Swal.fire({
+                    icon: "error",
+                    title: "បរាជ័យលើប្រព័ន្ធ GPS",
+                    text: "សូមបើក Location (GPS) លើទូរស័ព្ទរបស់អ្នក រួចព្យាយាមម្តងទៀត។",
+                    confirmButtonText: "យល់ព្រម",
+                }).then(() => {
+                    // បើខុស GPS ឱ្យវាបើកកាមេរ៉ាដំណើរការឡើងវិញ
+                    requestCameraAndStart();
+                });
             },
-            { enableHighAccuracy: true },
+            { enableHighAccuracy: true, timeout: 10000 }, // បើហួស ១០ វិនាទី ចាត់ទុកថាយឺត (Timeout)
         );
     } else {
         isProcessing.value = false;
-        scanResult.value = null;
-        errorMessage.value = "Browser របស់អ្នកមិនគាំទ្រប្រព័ន្ធ GPS ឡើយ។";
+        Swal.fire({
+            icon: "error",
+            title: "មិនគាំទ្រប្រព័ន្ធ GPS",
+            text: "Browser របស់អ្នកមិនគាំទ្រប្រព័ន្ធទីតាំងឡើយ។",
+            confirmButtonText: "យល់ព្រម",
+        });
     }
 }
 
 function onScanFailure(error) {
-    // បណ្តោយឱ្យវាស្កេនបន្តរហូតដល់ចំ QR Code
+    // បន្តឱ្យស្កេនរហូតដល់ចំកូដត្រឹមត្រូវ
 }
 
 function sendDataToBackend(qrCodeText, lat, lng) {
@@ -110,15 +132,40 @@ function sendDataToBackend(qrCodeText, lat, lng) {
         {
             onSuccess: () => {
                 const page = usePage();
-                scanResult.value =
-                    page.props.flash?.success || "ធ្វើប្រតិបត្តិការជោគជ័យ!";
+                Swal.close(); // បិទប្រអប់ Loading
+
+                // SweetAlert ករណីស្កេនបានជោគជ័យ
+                Swal.fire({
+                    icon: "success",
+                    title: "កត់ត្រាវត្តមានជោគជ័យ",
+                    text:
+                        page.props.flash?.success ||
+                        "ទិន្នន័យវត្តមានរបស់អ្នកត្រូវបានរក្សាទុក។",
+                    timer: 2500,
+                    showConfirmButton: false,
+                }).then(() => {
+                    // រុញត្រឡប់ទៅកាន់ទំព័រ Dashboard វិញអូតូ
+                    router.visit(route("staff.dashboard"));
+                });
+
                 isProcessing.value = false;
             },
             onError: (errors) => {
-                scanResult.value = null;
-                errorMessage.value =
-                    errors.error || "មានបញ្ហាកើតឡើងក្នុងការរក្សាវត្តមាន!";
-                isProcessing.value = false;
+                Swal.close(); // បិទប្រអប់ Loading
+
+                // SweetAlert ករណីមានកំហុស ឬទិន្នន័យយឺត/ខុសកូដ
+                Swal.fire({
+                    icon: "error",
+                    title: "មិនអាចកត់ត្រាវត្តមានបានទេ",
+                    text:
+                        errors.error ||
+                        "កូដខុស ឬការតភ្ជាប់អ៊ីនធឺណិតមានបញ្ហាយឺតខ្លាំង!",
+                    confirmButtonText: "ព្យាយាមម្តងទៀត",
+                }).then(() => {
+                    isProcessing.value = false;
+                    // អនុញ្ញាតឱ្យដំណើរការកាមេរ៉ាស្កេនឡើងវិញ
+                    requestCameraAndStart();
+                });
             },
         },
     );
@@ -175,15 +222,9 @@ function sendDataToBackend(qrCodeText, lat, lng) {
             <div
                 v-show="hasCameraPermission"
                 id="reader"
-                class="overflow-hidden rounded-2xl border-none"
+                class="overflow-hidden rounded-2xl border-none mx-auto"
             ></div>
 
-            <div
-                v-if="scanResult"
-                class="mt-4 p-3 bg-emerald-50 text-emerald-600 rounded-xl font-siemreap text-sm font-bold"
-            >
-                {{ scanResult }}
-            </div>
             <div
                 v-if="errorMessage"
                 class="mt-4 p-3 bg-rose-50 text-rose-600 rounded-xl font-siemreap text-sm font-bold"

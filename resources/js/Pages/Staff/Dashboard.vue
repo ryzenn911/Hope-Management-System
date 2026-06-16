@@ -1,13 +1,36 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Head, Link, usePage, router } from "@inertiajs/vue3";
-import { computed } from "vue";
+import { Html5Qrcode } from "html5-qrcode";
+import { computed, ref } from "vue";
 
 const props = defineProps({
     weeklyRecords: Array,
     weekRange: String,
     currentDate: String,
 });
+
+const isCheckingPermission = ref(false);
+
+async function handleAttendanceClick() {
+    if (isCheckingPermission.value) return;
+    isCheckingPermission.value = true;
+
+    try {
+        // ដាស់ផ្ទាំង Alert សុំសិទ្ធិកាមេរ៉ាពី Browser ភ្លាមៗ
+        await Html5Qrcode.getCameras();
+
+        // បើ User ចុច "Allow" វានឹងរត់មកជួរនេះ រួចបញ្ជូនទៅទំព័រ Scan តែម្ដង
+        router.visit(route("staff.attendance.scan"));
+    } catch (error) {
+        // បើ User បដិសេធ (Block) ឬគ្មានកាមេរ៉ា
+        alert(
+            "សូមអនុញ្ញាតឱ្យកម្មវិធីប្រើប្រាស់កាមេរ៉ា (Allow Camera Permission) ដើម្បីអាចស្កេនវត្តមានបាន។",
+        );
+    } finally {
+        isCheckingPermission.value = false;
+    }
+}
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
@@ -54,14 +77,37 @@ const changeWeek = (direction) => {
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mx-4 mb-6">
-                    <Link
-                        :href="route('staff.attendance.scan')"
-                        class="flex flex-col items-center justify-center bg-[#8BC34A] text-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 active:scale-95 group text-center"
+                    <button
+                        @click="handleAttendanceClick"
+                        :disabled="isCheckingPermission"
+                        class="w-full flex flex-col items-center justify-center bg-[#8BC34A] text-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 active:scale-95 group text-center disabled:opacity-70"
                     >
                         <div
                             class="p-4 bg-white/20 rounded-2xl mb-3 group-hover:scale-110 transition-transform duration-300"
                         >
                             <svg
+                                v-if="isCheckingPermission"
+                                class="animate-spin w-10 h-10 text-white"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                            >
+                                <circle
+                                    class="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    stroke-width="4"
+                                ></circle>
+                                <path
+                                    class="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
+                            </svg>
+                            <svg
+                                v-else
                                 class="w-10 h-10 text-white"
                                 fill="none"
                                 stroke="currentColor"
@@ -78,13 +124,18 @@ const changeWeek = (direction) => {
                         </div>
                         <span
                             class="text-lg font-bold font-poppins tracking-wide"
-                            >ATTENDANCE</span
                         >
+                            {{
+                                isCheckingPermission
+                                    ? "CHECKING..."
+                                    : "ATTENDANCE"
+                            }}
+                        </span>
                         <span
                             class="text-xs text-emerald-100 font-siemreap mt-1"
                             >ស្កេន QR Code វត្តមាន ចូល/ចេញ</span
                         >
-                    </Link>
+                    </button>
 
                     <Link
                         :href="route('staff.leaves.index')"
