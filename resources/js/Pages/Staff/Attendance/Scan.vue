@@ -1,119 +1,129 @@
+<script setup>
+import { onMounted, onBeforeUnmount, ref } from "vue";
+import { router, usePage } from "@inertiajs/vue3";
+import { Html5QrcodeScanner } from "html5-qrcode";
+
+const scanResult = ref(null);
+const errorMessage = ref("");
+const isProcessing = ref(false);
+let html5QrcodeScanner = null;
+
+onMounted(() => {
+    // ចាប់ផ្ដើមកាមេរ៉ាស្កេន
+    html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader",
+        {
+            fps: 10,
+            qrbox: { width: 260, height: 260 },
+        },
+        false,
+    );
+
+    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+});
+
+onBeforeUnmount(() => {
+    if (html5QrcodeScanner) {
+        html5QrcodeScanner
+            .clear()
+            .catch((err) => console.error("Scanner clear error", err));
+    }
+});
+
+function onScanSuccess(decodedText) {
+    if (isProcessing.value) return;
+
+    isProcessing.value = true;
+    errorMessage.value = "";
+    scanResult.value = "ស្កេនបានជោគជ័យ! កំពុងផ្ទៀងផ្ទាត់ GPS...";
+
+    // ទាញយកទីតាំង GPS របស់ទូរស័ព្ទ
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                sendDataToBackend(
+                    decodedText,
+                    position.coords.latitude,
+                    position.coords.longitude,
+                );
+            },
+            (error) => {
+                isProcessing.value = false;
+                scanResult.value = null;
+                errorMessage.value =
+                    "សូមបើក Location (GPS) លើទូរស័ព្ទរបស់អ្នកមុននឹងស្កេនវត្តមាន។";
+            },
+            { enableHighAccuracy: true }, // យកទីតាំងដែលជាក់លាក់បំផុត
+        );
+    } else {
+        isProcessing.value = false;
+        scanResult.value = null;
+        errorMessage.value = "Browser របស់អ្នកមិនគាំទ្រប្រព័ន្ធ GPS ឡើយ។";
+    }
+}
+
+function onScanFailure(error) {
+    // ទុកឱ្យវាលោតស្កេនបន្តបន្ទាប់ទៀតរហូតដល់ចំរូប QR
+}
+
+function sendDataToBackend(qrCodeText, lat, lng) {
+    router.post(
+        route("staff.attendance.store"),
+        {
+            qr_code: qrCodeText,
+            latitude: lat,
+            longitude: lng,
+        },
+        {
+            onSuccess: () => {
+                // ចាប់យក flash success ពី Laravel សាកល្បងបង្ហាញ
+                const page = usePage();
+                scanResult.value =
+                    page.props.flash?.success || "ធ្វើប្រតិបត្តិការជោគជ័យ!";
+                isProcessing.value = false;
+            },
+            onError: (errors) => {
+                scanResult.value = null;
+                errorMessage.value =
+                    errors.error || "មានបញ្ហាកើតឡើងក្នុងការរក្សាវត្តមាន!";
+                isProcessing.value = false;
+            },
+        },
+    );
+}
+</script>
+
 <template>
-    <Head title="Scan Attendance | Hope for Cambodian Children" />
     <div
-        class="min-h-screen bg-gray-100 flex flex-col items-center justify-content border-t-4 border-blue-500 p-4"
+        class="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4"
     >
-        <div class="w-full max-w-md bg-white rounded-xl shadow-md p-6 mt-10">
-            <div class="text-center mb-6">
-                <h1 class="text-2xl font-bold text-gray-800">Attendance</h1>
-                <p class="text-sm text-gray-500 font-['Siemreap'] mt-1">
-                    សូមស្កេន QR Code ដើម្បី Check-in/out
-                </p>
-            </div>
+        <div
+            class="w-full max-w-md bg-white rounded-3xl p-6 shadow-sm border border-gray-100 text-center"
+        >
+            <h2 class="text-xl font-bold text-gray-800 font-siemreap mb-1">
+                ស្កេន QR Code វត្តមាន
+            </h2>
+            <p class="text-xs text-gray-400 font-poppins mb-6">
+                Please align the QR code inside the box
+            </p>
 
             <div
-                class="relative bg-gray-950 rounded-lg overflow-hidden aspect-square border-2 border-gray-200"
-            >
-                <div id="reader" class="w-full h-full"></div>
-            </div>
-
-            <div class="mt-6 text-center font-['Siemreap']">
-                <div
-                    v-if="loading"
-                    class="text-blue-600 font-medium animate-pulse"
-                >
-                    ⏳ កំពុងទាញយកទីតាំង GPS និងផ្ទៀងផ្ទាត់...
-                </div>
-                <div v-else class="text-gray-500 text-sm">
-                    📷 ដាក់កាមេរ៉ាឱ្យចំរូបភាព QR Code
-                </div>
-            </div>
+                id="reader"
+                class="overflow-hidden rounded-2xl border-none"
+            ></div>
 
             <div
-                v-if="$page.props.errors.error"
-                class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm font-['Siemreap'] text-center"
+                v-if="scanResult"
+                class="mt-4 p-3 bg-emerald-50 text-emerald-600 rounded-xl font-siemreap text-sm font-bold"
             >
-                ⚠️ {{ $page.props.errors.error }}
+                {{ scanResult }}
+            </div>
+            <div
+                v-if="errorMessage"
+                class="mt-4 p-3 bg-rose-50 text-rose-600 rounded-xl font-siemreap text-sm font-bold"
+            >
+                {{ errorMessage }}
             </div>
         </div>
     </div>
 </template>
-
-<script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
-import { Head, useForm } from "@inertiajs/vue3";
-import { Html5QrcodeScanner } from "html5-qrcode";
-
-const loading = ref(false);
-let html5QrcodeScanner = null;
-
-// បង្កើត Form សម្រាប់បាញ់ទៅកាន់ Laravel Backend
-const form = useForm({
-    latitude: null,
-    longitude: null,
-});
-
-// មុខងារដំណើរការនៅពេលស្កេន QR Code ជាប់ជោគជ័យ
-const onScanSuccess = (decodedText, decodedResult) => {
-    // បិទកាមេរ៉ាបណ្ដោះអាសន្នសិនដើម្បីការពារកុំឱ្យវា Scan ត្រួតគ្នាពីរដង
-    html5QrcodeScanner.clear();
-    loading.value = true;
-
-    // ១. ទាញយកទីតាំង GPS ពីទូរស័ព្ទរបស់បុគ្គលិក
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                form.latitude = position.coords.latitude;
-                form.longitude = position.coords.longitude;
-
-                // ២. បាញ់ទិន្នន័យ GPS ទៅកាន់ Backend តាម Route ដែលយើងបានបង្កើត
-                form.post(route("attendance.store"), {
-                    onSuccess: () => {
-                        loading.value = false;
-                        alert("🎉 កត់ត្រាវត្តមានបានជោគជ័យ!");
-                        startScanner(); // បើកកាមេរ៉ាឡើងវិញ
-                    },
-                    onError: () => {
-                        loading.value = false;
-                        startScanner(); // បើកកាមេរ៉ាឡើងវិញទោះជាបរាជ័យ
-                    },
-                });
-            },
-            (error) => {
-                loading.value = false;
-                alert(
-                    "❌ សូមបើកមុខងារ Location (GPS) នៅលើទូរស័ព្ទរបស់អ្នកជាមុនសិន!",
-                );
-                startScanner();
-            },
-            { enableHighAccuracy: true }, // បង្ខំឱ្យចាប់យកទីតាំងកម្រិតម៉ត់បំផុត
-        );
-    } else {
-        loading.value = false;
-        alert("❌ ទូរស័ព្ទ ឬ Browser របស់អ្នកមិនគាំទ្រប្រព័ន្ធ GPS ទេ។");
-        startScanner();
-    }
-};
-
-// មុខងារសម្រាប់បើកដំណើរការកាមេរ៉ា
-const startScanner = () => {
-    html5QrcodeScanner = new Html5QrcodeScanner(
-        "reader",
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        /* verbose= */ false,
-    );
-    html5QrcodeScanner.render(onScanSuccess);
-};
-
-// ហៅឱ្យបើកកាមេរ៉ាភ្លាម ពេល User បើកមកដល់ទំព័រនេះ
-onMounted(() => {
-    startScanner();
-});
-
-// បិទកាមេរ៉ាវិញ ពេល User ចាកចេញពីទំព័រនេះទៅទំព័រផ្សេង
-onBeforeUnmount(() => {
-    if (html5QrcodeScanner) {
-        html5QrcodeScanner.clear();
-    }
-});
-</script>

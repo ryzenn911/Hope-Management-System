@@ -68,11 +68,11 @@ const formatPhone01 = (event) => {
 };
 
 const formatPhone02 = (event) => {
-    form.clearErrors("phone");
+    form.clearErrors("family_number");
     let value = event.target.value.replace(/\D/g, "");
     if (value.length > 10) value = value.substring(0, 10);
     const formatted = value.match(/.{1,3}/g)?.join(" ") || "";
-    form.phone = formatted;
+    form.family_number = formatted;
 };
 
 const dobInput = ref(null);
@@ -494,7 +494,7 @@ const submit = () => {
                                             'border-red-500':
                                                 form.errors.position_id,
                                         }"
-                                        class="mt-1 block w-full border border-gray-300 outline-none leading-7 transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-md p-2 text-sm cursor-pointer"
+                                        class="mt-1 block w-full border font-siemreap border-gray-300 outline-none leading-7 transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-md p-2 text-sm cursor-pointer"
                                     >
                                         <option value="" disabled selected>
                                             Select a position

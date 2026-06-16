@@ -50,7 +50,7 @@ Route::middleware(['auth'])->group(function () {
     Route::name('staff.')->prefix('staff')->group(function () {
         Route::get('/dashboard', [StaffDashboardController::class, 'index'])->name('dashboard');
         Route::controller(LeaveController::class)->group(function () {
-            Route::get('/leaves', 'index')->name('leaves.index');
+            Route::get('/leaves/index', 'index')->name('leaves.index');
             Route::get('/leaves/create', 'create')->name('leaves.create');
             Route::post('/leaves', 'store')->name('leaves.store');
         });
