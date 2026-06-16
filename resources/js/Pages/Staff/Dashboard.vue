@@ -1,40 +1,31 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Head, Link, usePage, router } from "@inertiajs/vue3";
-import { Html5Qrcode } from "html5-qrcode";
 import { computed, ref } from "vue";
 
-// 💡 កែប្រែ Props ឱ្យត្រូវទៅតាមទិន្នន័យដែលបោះមកពី Laravel Controller ថ្មី
+// ទទួលយក Object វត្តមានថ្ងៃនេះ មកពី Laravel Controller
 const props = defineProps({
-    todayRecord: Object, // ទទួលយក Object វត្តមានថ្ងៃនេះ (ឬ null បើមិនទាន់ស្កេន)
+    todayRecord: Object,
 });
 
-const isCheckingPermission = ref(false);
+const isRedirecting = ref(false);
 
 /**
- * មុខងារសម្រាប់ឆែកសិទ្ធិកាមេរ៉ា និងបញ្ជូនទៅកាន់ទំព័រស្កេន QR Code
+ * បញ្ជូនទៅកាន់ទំព័រស្កេន QR Code
  */
-async function handleAttendanceClick() {
-    if (isCheckingPermission.value) return;
-    isCheckingPermission.value = true;
+function handleAttendanceClick() {
+    if (isRedirecting.value) return;
+    isRedirecting.value = true;
 
-    try {
-        // ដាស់ផ្ទាំង Alert សុំសិទ្ធិកាមេរ៉ាពី Browser ភ្លាមៗ
-        await Html5Qrcode.getCameras();
-
-        // បើ User ចុច "Allow" វានឹងរត់មកជួរនេះ រួចបញ្ជូនទៅទំព័រ Scan តែម្ដង
-        router.visit(route("staff.attendance.scan"));
-    } catch (error) {
-        // បើ User បដិសេធ (Block) ឬគ្មានកាមេរ៉ា
-        alert(
-            "សូមអនុញ្ញាតឱ្យកម្មវិធីប្រើប្រាស់កាមេរ៉ា (Allow Camera Permission) ដើម្បីអាចស្កេនវត្តមានបាន។",
-        );
-    } finally {
-        isCheckingPermission.value = false;
-    }
+    // បញ្ជូនទៅទំព័រ Scan ហើយទុកឱ្យទំព័រ Scan នោះជាអ្នកសុំសិទ្ធិកាមេរ៉ា និងបើកកាមេរ៉ា
+    router.visit(route("staff.attendance.scan"), {
+        onFinish: () => {
+            isRedirecting.value = false;
+        },
+    });
 }
 
-// ទាញយកព័ត៌មាន User ដែលបាន Login ជាប់
+// ទាញយកព័ត៌មាន User ដែលបាន Login
 const page = usePage();
 const user = computed(() => page.props.auth.user);
 </script>
@@ -44,33 +35,34 @@ const user = computed(() => page.props.auth.user);
     <AuthenticatedLayout>
         <div class="py-4">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                <!-- ផ្នែកព័ត៌មានបុគ្គលិក -->
                 <div
                     class="overflow-hidden bg-white shadow-sm rounded-xl px-5 py-3 mx-4 mb-6"
                 >
                     <h1 class="md:text-xl text-md text-[#01AAEB] font-poppins">
                         Hello,
                         <span class="uppercase font-bold">{{
-                            user.name_en
+                            user?.name_en || "Staff"
                         }}</span
                         >!
                     </h1>
                     <h2 class="md:text-lg text-md text-gray-600 font-siemreap">
-                        Position:
-                        {{ $page.props.auth.user.position?.name || "N/A" }}
+                        Position: {{ user?.position?.name || "N/A" }}
                     </h2>
                 </div>
 
+                <!-- ផ្នែកប៊ូតុងកាតគ្របគ្រង -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mx-4 mb-6">
                     <button
                         @click="handleAttendanceClick"
-                        :disabled="isCheckingPermission"
+                        :disabled="isRedirecting"
                         class="w-full flex flex-col items-center justify-center bg-[#8BC34A] text-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 active:scale-95 group text-center disabled:opacity-70"
                     >
                         <div
                             class="p-4 bg-white/20 rounded-2xl mb-3 group-hover:scale-110 transition-transform duration-300"
                         >
                             <svg
-                                v-if="isCheckingPermission"
+                                v-if="isRedirecting"
                                 class="animate-spin w-10 h-10 text-white"
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
@@ -109,11 +101,7 @@ const user = computed(() => page.props.auth.user);
                         <span
                             class="text-lg font-bold font-poppins tracking-wide"
                         >
-                            {{
-                                isCheckingPermission
-                                    ? "CHECKING..."
-                                    : "ATTENDANCE"
-                            }}
+                            {{ isRedirecting ? "LOADING..." : "ATTENDANCE" }}
                         </span>
                         <span
                             class="text-xs text-emerald-100 font-siemreap mt-1"
@@ -152,214 +140,136 @@ const user = computed(() => page.props.auth.user);
                         >
                     </Link>
                 </div>
+
                 <div
-                    class="bg-white rounded-3xl border border-gray-100 shadow-sm mx-5 mb-10 overflow-hidden"
+                    class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
                 >
-                    <div
-                        class="flex items-center justify-between px-6 py-4 border-b border-gray-50 bg-gray-50/50"
+                    <table
+                        class="w-full border-collapse text-left text-sm text-gray-500"
                     >
-                        <div class="flex items-center space-x-2">
-                            <div class="p-2 bg-blue-50 rounded-xl">
-                                <svg
-                                    class="w-5 h-5 text-[#01AAEB]"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                    />
-                                </svg>
-                            </div>
-                            <div>
-                                <h3
-                                    class="text-gray-800 font-bold font-siemreap text-base leading-tight"
-                                >
-                                    វត្តមានថ្ងៃនេះ
-                                </h3>
-                                <p
-                                    class="text-[11px] text-gray-400 font-poppins"
-                                >
-                                    Today's Attendance
-                                </p>
-                            </div>
-                        </div>
-                        <span
-                            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-[#01AAEB] font-poppins animate-pulse"
+                        <thead
+                            class="bg-gray-50 text-xs font-semibold uppercase text-gray-700 font-siemreap"
                         >
-                            Today
-                        </span>
-                    </div>
+                            <tr>
+                                <th scope="col" class="px-6 py-4">
+                                    វេនការងារ
+                                </th>
+                                <th scope="col" class="px-6 py-4">
+                                    ម៉ោងចូល
+                                </th>
+                                <th scope="col" class="px-6 py-4">
+                                    ម៉ោងចេញ
+                                </th>
+                                <th scope="col" class="px-6 py-4 text-right">
+                                    ស្ថានភាព
+                                </th>
+                            </tr>
+                        </thead>
 
-                    <div class="p-6">
-                        <div
-                            v-if="props.todayRecord"
-                            class="grid grid-cols-1 md:grid-cols-2 gap-4"
+                        <tbody
+                            class="divide-y divide-gray-150 border-t border-gray-150 text-gray-900 font-medium"
                         >
-                            <div
-                                class="p-4 rounded-2xl bg-slate-50 border border-slate-100/50 flex flex-col justify-between gap-4"
-                            >
-                                <div class="flex items-center justify-between">
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 text-[#01AAEB] font-siemreap font-bold">
+                                    វេនព្រឹក
+                                </td>
+                                <td class="px-6 py-4 font-mono text-base">
+                                    {{
+                                        props.todayRecord?.check_in_morn ||
+                                        "--:--"
+                                    }}
+                                </td>
+                                <td class="px-6 py-4 font-mono text-base">
+                                    {{
+                                        props.todayRecord?.check_out_morn ||
+                                        "--:--"
+                                    }}
+                                </td>
+                                <td class="px-6 py-4 text-right">
                                     <span
-                                        class="text-sm font-bold text-blue-600 font-siemreap"
-                                        >វេនព្រឹក (Morning)</span
-                                    >
-                                    <span
-                                        v-if="props.todayRecord.check_in_morn"
+                                        v-if="props.todayRecord?.morn_status"
                                         :class="{
-                                            'text-emerald-600 bg-emerald-50 border-emerald-100':
-                                                props.todayRecord.morn_status?.toLowerCase() ===
-                                                'present',
-                                            'text-amber-600 bg-amber-50 border-amber-100':
-                                                props.todayRecord.morn_status?.toLowerCase() ===
-                                                'late',
+                                            'bg-green-50 text-green-700 ring-green-600/20':
+                                                props.todayRecord
+                                                    .morn_status === 'Present',
+                                            'bg-amber-50 text-amber-700 ring-amber-600/20':
+                                                props.todayRecord
+                                                    .morn_status === 'Late',
+                                            'bg-red-50 text-red-700 ring-red-600/20':
+                                                props.todayRecord
+                                                    .morn_status === 'Absent',
                                         }"
-                                        class="text-[10px] font-bold px-2.5 py-0.5 rounded-full border uppercase font-poppins"
+                                        class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-bold ring-1 ring-inset"
                                     >
                                         {{
-                                            props.todayRecord.morn_status?.toLowerCase() ===
-                                            "late"
-                                                ? "យឺត / Late"
-                                                : "ទាន់ពេល / Present"
+                                            props.todayRecord.morn_status ===
+                                            "Present"
+                                                ? "PRESENT"
+                                                : props.todayRecord
+                                                        .morn_status === "Late"
+                                                  ? "LATE"
+                                                  : "ABSENT"
                                         }}
                                     </span>
                                     <span
                                         v-else
-                                        class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-500 border border-rose-100 font-siemreap"
-                                        >អវត្តមាន</span
+                                        class="text-gray-400 text-xs font-normal"
+                                        >មិនទាន់មានទិន្នន័យ</span
                                     >
-                                </div>
+                                </td>
+                            </tr>
 
-                                <div class="grid grid-cols-2 gap-2 text-center">
-                                    <div
-                                        class="p-2 bg-white rounded-xl border border-gray-100"
-                                    >
-                                        <span
-                                            class="block text-[10px] text-gray-400 uppercase font-poppins"
-                                            >Morn In</span
-                                        >
-                                        <span
-                                            class="text-base font-bold text-gray-700 font-poppins"
-                                            >{{
-                                                props.todayRecord
-                                                    .check_in_morn || "-- : --"
-                                            }}</span
-                                        >
-                                    </div>
-                                    <div
-                                        class="p-2 bg-white rounded-xl border border-gray-100"
-                                    >
-                                        <span
-                                            class="block text-[10px] text-gray-400 uppercase font-poppins"
-                                            >Morn Out</span
-                                        >
-                                        <span
-                                            class="text-base font-bold text-gray-700 font-poppins"
-                                            >{{
-                                                props.todayRecord
-                                                    .check_out_morn || "-- : --"
-                                            }}</span
-                                        >
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div
-                                class="p-4 rounded-2xl bg-slate-50 border border-slate-100/50 flex flex-col justify-between gap-4"
-                            >
-                                <div class="flex items-center justify-between">
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 text-[#01AAEB] font-siemreap font-bold">
+                                    វេនរសៀល
+                                </td>
+                                <td class="px-6 py-4 font-mono text-base">
+                                    {{
+                                        props.todayRecord?.check_in_aft ||
+                                        "--:--"
+                                    }}
+                                </td>
+                                <td class="px-6 py-4 font-mono text-base">
+                                    {{
+                                        props.todayRecord?.check_out_aft ||
+                                        "--:--"
+                                    }}
+                                </td>
+                                <td class="px-6 py-4 text-right">
                                     <span
-                                        class="text-sm font-bold text-indigo-600 font-siemreap"
-                                        >វេនល្ងាច (Afternoon)</span
-                                    >
-                                    <span
-                                        v-if="props.todayRecord.check_in_aft"
+                                        v-if="props.todayRecord?.aft_status"
                                         :class="{
-                                            'text-indigo-600 bg-indigo-50 border-indigo-100':
-                                                props.todayRecord.aft_status?.toLowerCase() ===
-                                                'present',
-                                            'text-amber-600 bg-amber-50 border-amber-100':
-                                                props.todayRecord.aft_status?.toLowerCase() ===
-                                                'late',
+                                            'bg-green-50 text-green-700 ring-green-600/20':
+                                                props.todayRecord.aft_status ===
+                                                'Present',
+                                            'bg-amber-50 text-amber-700 ring-amber-600/20':
+                                                props.todayRecord.aft_status ===
+                                                'Late',
+                                            'bg-red-50 text-red-700 ring-red-600/20':
+                                                props.todayRecord.aft_status ===
+                                                'Absent',
                                         }"
-                                        class="text-[10px] font-bold px-2.5 py-0.5 rounded-full border uppercase font-poppins"
+                                        class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-bold ring-1 ring-inset"
                                     >
                                         {{
-                                            props.todayRecord.aft_status?.toLowerCase() ===
-                                            "late"
-                                                ? "យឺត / Late"
-                                                : "ទាន់ពេល / Present"
+                                            props.todayRecord.aft_status ===
+                                            "Present"
+                                                ? "PRESENT"
+                                                : props.todayRecord
+                                                        .aft_status === "Late"
+                                                  ? "LATE"
+                                                  : "ABSENT"
                                         }}
                                     </span>
                                     <span
                                         v-else
-                                        class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-500 border border-rose-100 font-siemreap"
-                                        >អវត្តមាន</span
+                                        class="text-gray-400 text-xs font-normal"
+                                        >មិនទាន់មានទិន្នន័យ</span
                                     >
-                                </div>
-
-                                <div class="grid grid-cols-2 gap-2 text-center">
-                                    <div
-                                        class="p-2 bg-white rounded-xl border border-gray-100"
-                                    >
-                                        <span
-                                            class="block text-[10px] text-gray-400 uppercase font-poppins"
-                                            >Aft In</span
-                                        >
-                                        <span
-                                            class="text-base font-bold text-gray-700 font-poppins"
-                                            >{{
-                                                props.todayRecord
-                                                    .check_in_aft || "-- : --"
-                                            }}</span
-                                        >
-                                    </div>
-                                    <div
-                                        class="p-2 bg-white rounded-xl border border-gray-100"
-                                    >
-                                        <span
-                                            class="block text-[10px] text-gray-400 uppercase font-poppins"
-                                            >Aft Out</span
-                                        >
-                                        <span
-                                            class="text-base font-bold text-gray-700 font-poppins"
-                                            >{{
-                                                props.todayRecord
-                                                    .check_out_aft || "-- : --"
-                                            }}</span
-                                        >
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div v-else class="text-center py-8">
-                            <svg
-                                class="w-12 h-12 text-gray-300 mx-auto mb-2"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                />
-                            </svg>
-                            <p
-                                class="text-gray-400 font-bold text-sm font-siemreap"
-                            >
-                                មិនទាន់មានទិន្នន័យវត្តមាននៅឡើយទេ
-                            </p>
-                            <p class="text-[11px] text-gray-400 font-poppins">
-                                No attendance record found for today.
-                            </p>
-                        </div>
-                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

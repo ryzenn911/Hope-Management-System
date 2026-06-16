@@ -36,6 +36,7 @@ class HandleInertiaRequests extends Middleware
             $nameParts = explode(' ', trim($employee->name_en));
             $firstNameOnly = end($nameParts);
         }
+
         return array_merge(parent::share($request), [
             'auth' => [
                 'user' => $request->user() ? [
@@ -46,7 +47,7 @@ class HandleInertiaRequests extends Middleware
                     'first_letter' => mb_substr($firstNameOnly, 0, 1),
                     'name_en' => $firstNameOnly,
                     'position' => [
-                        'name' => $employee && $employee->position ? $employee->position->name : "N/A"
+                        'name' => $employee && $employee->position ? $employee->position->name : 'N/A',
                     ],
                     'role' => $request->user()->role,
                 ] : null,
