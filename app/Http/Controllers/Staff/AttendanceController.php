@@ -52,8 +52,6 @@ class AttendanceController extends Controller
         }
 
         $user = Auth::user();
-
-        // ប្រើ Eager Loading ទាញយក position
         $employee = $user->employee()->with('position')->first();
 
         if (! $employee) {
@@ -77,12 +75,9 @@ class AttendanceController extends Controller
 
         $mornInTime = $shift->morn_in_time;
         $aftInTime = $shift->aft_in_time;
-
         $earliestMornOut = '12:00:00';
         $autoMornOutDeadLine = '12:30:00';
-
         $eveningOutTime = $shift->evening_out_time ?? '17:00:00';
-        $autoEveningOutDeadline = Carbon::parse($eveningOutTime)->addMinutes(30)->toTimeString();
 
         // បើជា គ្រូបង្រៀន (id = 8)
         if ($employee->position_id == 8 || (optional($employee->position)->name === 'គ្រូបង្រៀន')) {
@@ -91,14 +86,15 @@ class AttendanceController extends Controller
             $earliestMornOut = '11:00:00';
             $autoMornOutDeadLine = '11:30:00';
             $eveningOutTime = '16:00:00';
-            $autoEveningOutDeadline = '16:30:00';
         }
 
         // ទាញយកទិន្នន័យវត្តមានថ្ងៃនេះ
         $attendance = Attendance::query()->where('employee_id', $employee->id)
             ->where('date', $today)
             ->first();
-        if ($nowTime > $autoEveningOutDeadline) {
+
+        // 💡 កែប្រែ៖ បិទការស្កេនត្រឹមដាច់ថ្ងៃតែម្តង (ម៉ោង ២៣:៥៩:៥៩) ដើម្បីកុំឱ្យប៉ះពាល់ដល់ម៉ោង Check-out របស់បុគ្គលិក
+        if ($nowTime > '23:59:59') {
             return back()->withErrors(['error' => 'អ្នកមិនអាចស្កេនបានទេ! (Today is closed)']);
         }
 
@@ -106,17 +102,25 @@ class AttendanceController extends Controller
             return back()->withErrors(['error' => 'អ្នកមិនអាចស្កេនបានទេ! (All records completed)']);
         }
 
+        // === ករណីមិនទាន់មាន Record សោះ (មកស្កេនលើកដំបូងបង្អស់ប្រចាំថ្ងៃ) ===
         if (! $attendance) {
+            // បើគាត់មកស្កេនលើកដំបូង ហើយហួសម៉ោងផ្ដាច់វគ្គព្រឹក (12:30) មានន័យថាគាត់មកលំដាប់រសៀលហើយ
             if ($nowTime > $autoMornOutDeadLine) {
+                // 💡 ពិនិត្យ៖ បើមិនទាន់ដល់ម៉ោង ១៣:០០ ទេ មិនឱ្យស្កេនឡើយ
+                if ($nowTime < '13:00:00') {
+                    return back()->withErrors(['error' => 'មិនទាន់ដល់ម៉ោងស្កេនសម្រាប់វេនរសៀលទេ! លុះត្រាតែម៉ោង 13:00 ឡើងទៅ។']);
+                }
+
                 $aftInDeadline = Carbon::parse($aftInTime)->addMinutes(30)->toTimeString();
                 $aftStatus = ($nowTime >= $aftInDeadline) ? 'Late' : 'Present';
+
                 Attendance::create([
                     'employee_id' => $employee->id,
                     'date' => $today,
-                    'check_in_morn' => null,   // ទុកឱ្យ null តាមការចង់បានរបស់អ្នក
-                    'check_out_morn' => null,  // ទុកឱ្យ null
-                    'morn_status' => 'Absent', // បោះទៅជា Absent តែម្ដង
-                    'check_in_aft' => $nowTime, // ចាប់យកម៉ោងបច្ចុប្បន្នចូលក្នុងប្រអប់ពេលរសៀល
+                    'check_in_morn' => null,
+                    'check_out_morn' => null,
+                    'morn_status' => 'Absent', // ព្រឹកអត់មក ធ្លាក់ Absent
+                    'check_in_aft' => $nowTime,
                     'aft_status' => $aftStatus,
                 ]);
 
@@ -136,36 +140,22 @@ class AttendanceController extends Controller
             return back()->with('success', 'Morning check-in successful! Status: '.strtoupper($mornStatus));
         }
 
-        // ករណីពិសេស៖ ធ្លាប់បាន Check-in ព្រឹក តែភ្លេច Check-out ព្រឹក រួចមកស្កេនពេលរសៀល
-        if ($attendance->check_out_morn === null && $nowTime > $autoMornOutDeadLine) {
-            $attendance->check_out_morn = $shift->morn_out_time; // ឱ្យម៉ោងតាម Shift
-
-            $aftInDeadline = Carbon::parse($aftInTime)->addMinutes(30)->toTimeString();
-            $aftStatus = ($nowTime >= $aftInDeadline) ? 'Late' : 'Present';
-
-            $attendance->check_in_aft = $nowTime;
-            $attendance->aft_status = $aftStatus;
-            $attendance->save();
-
-            return back()->with('success', 'System auto morning check-out and afternoon check-in successful!');
-        }
-
-        // === ករណីទី ២៖ CHECK-OUT ព្រឹក ===
-        if ($attendance->check_out_morn === null) {
+        if ($attendance->check_out_morn === null && $nowTime <= $autoMornOutDeadLine) {
             if ($nowTime < $earliestMornOut) {
                 return back()->withErrors([
                     'error' => 'មិនទាន់អាច check-out បានទេ! ម៉ោង '.Carbon::parse($earliestMornOut)->format('H:i').' ទើបអាច Check-out បាន។',
                 ]);
             }
-
             $attendance->check_out_morn = $nowTime;
             $attendance->save();
-
             return back()->with('success', 'Morning check-out successful!');
         }
 
-        // === ករណីទី ៣៖ CHECK-IN រសៀល ===
         if ($attendance->check_in_aft === null) {
+            if ($nowTime < '13:00:00') {
+                return back()->withErrors(['error' => 'មិនទាន់ដល់ម៉ោង Check In នោះទេ។']);
+            }
+
             $aftInDeadline = Carbon::parse($aftInTime)->addMinutes(30)->toTimeString();
             $aftStatus = ($nowTime >= $aftInDeadline) ? 'Late' : 'Present';
 
@@ -176,7 +166,6 @@ class AttendanceController extends Controller
             return back()->with('success', 'Afternoon check-in successful! Status: '.strtoupper($aftStatus));
         }
 
-        // === ករណីទី ៤៖ CHECK-OUT ល្ងាច ===
         if ($attendance->check_out_aft === null) {
             $attendance->check_out_aft = $nowTime;
             $attendance->save();

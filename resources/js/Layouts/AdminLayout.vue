@@ -99,10 +99,10 @@ const Icons = {
                     <span class="mr-3" v-html="Icons.Department"></span>
                     Departments
                 </Link>
-                <!-- <Link
-                    :href="route('admin.attendance')"
+                <Link
+                    :href="route('attendance.index')"
                     :class="
-                        route().current('admin.attendance')
+                        route().current('attendance.index')
                             ? 'bg-[#01AAEB] text-white shadow-lg shadow-blue-100'
                             : 'text-gray-500 hover:bg-[#01AAEB] hover:text-white'
                     "
@@ -110,7 +110,7 @@ const Icons = {
                 >
                     <span class="mr-3" v-html="Icons.Attendance"></span>
                     Attendance
-                </Link> -->
+                </Link>
                 <Link
                     :href="route('admin.leaves.index')"
                     :class="

@@ -54,6 +54,12 @@ class Employee extends Model
         return $this->belongsTo(Address::class, 'address_id');
     }
 
+    public function attendances()
+    {
+        // បុគ្គលិកម្នាក់មានទិន្នន័យវត្តមានច្រើន (Has Many)
+        return $this->hasMany(Attendance::class, 'employee_id');
+    }
+
     /**
      * Relationship ទៅកាន់ EducationLevel (កម្រិតវប្បធម៌)
      */
@@ -61,6 +67,7 @@ class Employee extends Model
     {
         return $this->belongsTo(EducationLevel::class, 'education_id');
     }
+
     protected function casts(): array
     {
         return [

@@ -62,6 +62,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/departments', [DepartmentController::class, 'index'])->name('departments.index');
             Route::get('/leaves', [AdminLeaveController::class, 'index'])->name('admin.leaves.index');
             Route::patch('/leaves/{id}/status', [AdminLeaveController::class, 'updateStatus'])->name('admin.leaves.updateStatus');
+            Route::get('/attendance', [AdminAttendanceController::class, 'index'])->name('attendance.index');
+            Route::post('/attendance/update', [AdminAttendanceController::class, 'update'])->name('attendance.update');
             Route::get('/attendance/office-qr', [AdminAttendanceController::class, 'showOfficeQr'])->name('attendance.office_qr');
         });
 
