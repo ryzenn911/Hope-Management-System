@@ -27,8 +27,6 @@ class DashboardController extends Controller
         } else {
             $selectedDate = Carbon::today()->toDateString();
         }
-
-        // 💡 បន្ថែម៖ ឆែកមើលថាតើថ្ងៃដែលបានជ្រើសរើស ត្រូវគ្នានឹងថ្ងៃបច្ចុប្បន្ន (Today) ដែរឬទេ
         $isToday = ($selectedDate === Carbon::today()->toDateString());
 
         $record = Attendance::query()
@@ -36,7 +34,6 @@ class DashboardController extends Controller
             ->whereDate('date', $selectedDate)
             ->first();
 
-        // រៀបចំ Format ទិន្នន័យបោះទៅ Frontend
         if ($record) {
             $mornStatus = $record->check_in_morn ? $record->morn_status : 'Absent';
             $aftStatus = $record->check_in_aft ? $record->aft_status : 'Absent';
@@ -65,7 +62,7 @@ class DashboardController extends Controller
         return Inertia::render('Staff/Dashboard', [
             'todayRecord' => $todayRecord,
             'selectedDate' => Carbon::parse($selectedDate)->format('d-m-Y'),
-            'isToday' => $isToday, // 💡 បោះតម្លៃ true/false ទៅឱ្យ Frontend
+            'isToday' => $isToday,
         ]);
     }
 
@@ -81,6 +78,6 @@ class DashboardController extends Controller
             return 'present';
         }
 
-        return 'absent';
+        return null;
     }
 }

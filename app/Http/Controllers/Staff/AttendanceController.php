@@ -154,7 +154,7 @@ class AttendanceController extends Controller
         if ($attendance->check_out_morn === null) {
             if ($nowTime < $earliestMornOut) {
                 return back()->withErrors([
-                    'error' => 'Cannot check-out yet! For your position, you can check-out from '.Carbon::parse($earliestMornOut)->format('H:i').' onwards.',
+                    'error' => 'មិនទាន់អាច check-out បានទេ! ម៉ោង '.Carbon::parse($earliestMornOut)->format('H:i').' ទើបអាច Check-out បាន។',
                 ]);
             }
 
