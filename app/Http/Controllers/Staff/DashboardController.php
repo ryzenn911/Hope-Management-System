@@ -35,8 +35,8 @@ class DashboardController extends Controller
             ->first();
 
         if ($record) {
-            $mornStatus = $record->check_in_morn ? $record->morn_status : 'Absent';
-            $aftStatus = $record->check_in_aft ? $record->aft_status : 'Absent';
+            $mornStatus = $record->morn_status;
+            $aftStatus = $record->aft_status;
 
             $todayRecord = [
                 'check_in_morn' => $record->check_in_morn ? Carbon::parse($record->check_in_morn)->format('H:i') : null,
@@ -72,6 +72,7 @@ class DashboardController extends Controller
             return 'absent';
         }
         if ($morn === 'Late' || $aft === 'Late') {
+            // បើកាលណាឋានៈណាមួយយឺត គឺយក Late
             return 'late';
         }
         if ($morn === 'Present' || $aft === 'Present') {
