@@ -278,7 +278,7 @@ const user = computed(() => page.props.auth.user);
                                     <span
                                         v-else
                                         class="text-gray-400 text-xs font-normal"
-                                        >មិនទាន់មានទិន្នន័យ</span
+                                        >- - - - -</span
                                     >
                                 </td>
                             </tr>
@@ -334,7 +334,7 @@ const user = computed(() => page.props.auth.user);
                                     <span
                                         v-else
                                         class="text-gray-400 text-xs font-normal"
-                                        >មិនទាន់មានទិន្នន័យ</span
+                                        >- - - - -</span
                                     >
                                 </td>
                             </tr>

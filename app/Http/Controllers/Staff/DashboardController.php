@@ -56,9 +56,9 @@ class DashboardController extends Controller
                 'check_out_morn' => null,
                 'check_in_aft' => null,
                 'check_out_aft' => null,
-                'morn_status' => 'Absent',
-                'aft_status' => 'Absent',
-                'status' => 'absent',
+                'morn_status' => null,
+                'aft_status' => null,
+                'status' => null,
             ];
         }
 
